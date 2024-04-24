@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/pytuntap.iml" filepath="$PROJECT_DIR$/.idea/pytuntap.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/virtual_interface.iml" filepath="$PROJECT_DIR$/.idea/virtual_interface.iml" />
     </modules>
   </component>
 </project>
