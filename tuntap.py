@@ -425,7 +425,7 @@ class Test(unittest.TestCase):
         while not tap.quitting:
             p = tap.read()
             print("rawdata:",''.join('{:02x} '.format(x) for x in p))
-            path_dir = '/home/tot/FilePack/data_file.txt'
+            path_dir = '/home/oem/PycharmProjects/virtual_interface/data_file.txt'
             with AtomicWrite(path_dir, 'wb') as file:
                 for x in p:
                     file.write(bytes([x]))
