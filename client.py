@@ -1,9 +1,10 @@
 import socket
 import fcntl
+import argparse
 import os
 import struct
 import subprocess
-import time
+from scapy.all import *
 
 # Server information
 server_ip = '127.0.0.1'  # Update with the server's IP address
@@ -15,6 +16,15 @@ TUNSETOWNER = TUNSETIFF + 2
 IFF_TUN = 0x0001
 IFF_TAP = 0x0002
 IFF_NO_PI = 0x1000
+
+parser = argparse.ArgumentParser(description='Process file types list.')
+parser.add_argument('--IP-dst', type=str, default='192.168.1.1', help='IP address. Default 192.168.1.1')
+parser.add_argument('--Eth-dst', type=str, default='0a:1a:de:3c:f0:5d', help='Ether address. Default 0a:1a:de:3c:f0:5d')
+parser.add_argument('--data', type=str, default='Firts_default', help='Input your test text')
+args = parser.parse_args()
+IP_dst = args.IP_dst
+Eth_dst = args.Eth_dst
+Test_text = args.data
 
 tap = open('/dev/net/tun', 'r+b', buffering=0)
 ifr = struct.pack('16sH', b'tap0', IFF_TAP | IFF_NO_PI)
@@ -30,8 +40,11 @@ client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 try:
     client_socket.connect((server_ip, server_port))
 
+    packet = Ether(dst=f'{Eth_dst}', src = f'{Eth_dst}') / IP(dst = f'{IP_dst}', src= f'{IP_dst}') / TCP(dport = 12345, sport = 54321) / Raw(load = f'{Test_text}')
+
     while True:
         # Read data from the TAP interface
+        sendp(packet, iface='tap0')
         packet = os.read(tap.fileno(), 2048)
         print('Packet read from TAP interface:', packet)
 
@@ -42,7 +55,6 @@ try:
         server_response = client_socket.recv(1024).decode()
         print(f"Server response: {server_response}")
 
-        time.sleep(0.5)
 
 except ConnectionRefusedError:
     print("Connection to the server refused. Make sure the server is running.")

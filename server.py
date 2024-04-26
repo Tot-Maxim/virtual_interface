@@ -28,7 +28,7 @@ while True:
             if not data:
                 break  # Break the loop if no more data is received
 
-            #print(f"Received data from client: {data.decode()}")
+            print(f"Received data from client: {data}")
 
             # Process the received data (if needed)
 
