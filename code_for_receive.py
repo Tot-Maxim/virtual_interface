@@ -3,7 +3,6 @@ import os
 import struct
 import subprocess
 import time
-from array import array
 
 
 # Some constants used to ioctl the device file. I got them by a simple C program.
@@ -25,17 +24,13 @@ path_dir = '/home/oem/PycharmProjects/virtual_interface/data_file.txt'
 
 while True:
     # Create a NumPy array filled with values from 0 to 29 for testing purposes.
-    #packet = array('B', os.read(tun.fileno(), 2048))
     with open(path_dir, 'rb') as file:
         packet = file.read()
         print(packet)
         time.sleep(0.5)
 
-    # Swap bytes at positions 12-15 with bytes at positions 16-19 in the packet array
-    #packet[12:16], packet[16:20] = packet[16:20], packet[12:16]
-
     # Print the content of the packet array after the swap operation
-    print('Packet after byte swap:', packet)
+    print('Packet raw:', packet)
 
     # Write the modified packet into the TUN device.
     os.write(tun.fileno(), bytes(packet))
