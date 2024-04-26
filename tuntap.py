@@ -1,6 +1,5 @@
 import unittest
 import struct
-
 import tempfile
 import subprocess
 import sys
@@ -143,9 +142,7 @@ class Tap(object):
         else:
             ifr_name = b'\x00'*16
         ifr = struct.pack('16sH22s', ifr_name , flags,b'\x00'*22)
-        # print(ifr)
         ret = fcntl.ioctl(tun, TUNSETIFF, ifr)
-        # print(ret,len(ret),ifr)
         logging.debug("%s %s"%(ifr,ret))
         dev, _ = struct.unpack('16sH', ret[:18])
         dev = dev.decode().strip("\x00")
@@ -204,23 +201,10 @@ class Tap(object):
 
     def close(self):
 
-        '''
-        close device
-
-        input:
-            None
-
-        return :
-            None
-
-        '''
-
         self.quitting = False
-        # print(self.name)
         os.close(self.handle)
         try:
             mode_name = 'tun' if self.nic_type=="Tun" else 'tap'
-            # print('ip tuntap delete mode '+ mode_name + " "+ self.name)
             subprocess.check_call('ip addr delete '+self.ip+'/%d '%self._get_maskbits(self.mask) + " dev "+ self.name , shell=True)
             subprocess.check_call('ip tuntap delete mode '+ mode_name + " "+ self.name , shell=True)
 

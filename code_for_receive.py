@@ -33,4 +33,4 @@ while True:
     print('Packet raw:', packet)
 
     # Write the modified packet into the TUN device.
-    os.write(tun.fileno(), bytes(packet))
+    #os.write(tun.fileno(), bytes(packet))
