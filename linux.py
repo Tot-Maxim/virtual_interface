@@ -21,14 +21,15 @@ fcntl.ioctl(tun, TUNSETOWNER, 1000)
 
 # Bring it up and assign addresses.
 subprocess.check_call('ifconfig tap0 192.168.1.1 pointopoint 192.168.1.1 up', shell=True)
-path_dir = '/home/oem/PycharmProjects/virtual_interface/data_file.txt'
+current_dir = os.path.dirname(os.path.abspath(__file__))
+path_dir = os.path.join(current_dir, 'data_file.txt')
 
 while True:
     # Create a NumPy array filled with values from 0 to 29 for testing purposes.
     #packet = array('B', os.read(tun.fileno(), 2048))
     with open(path_dir, 'rb') as file:
         packet = file.read()
-        print(packet)
+        print("raw_read_data:", ''.join('{:02x} '.format(x) for x in packet))
         time.sleep(0.5)
 
     # Print the content of the packet array after the swap operation
@@ -36,3 +37,5 @@ while True:
 
     # Write the modified packet into the TUN device.
     os.write(tun.fileno(), bytes(packet))
+
+
