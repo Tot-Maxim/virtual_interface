@@ -26,11 +26,11 @@ path_dir = os.path.join(current_dir, 'data_file.txt')
 
 while True:
     # Create a NumPy array filled with values from 0 to 29 for testing purposes.
-    #packet = array('B', os.read(tun.fileno(), 2048))
-    with open(path_dir, 'rb') as file:
-        packet = file.read()
-        print("raw_read_data:", ''.join('{:02x} '.format(x) for x in packet))
-        time.sleep(0.5)
+    packet = array('B', os.read(tun.fileno(), 2048))
+    # with open(path_dir, 'rb') as file:
+    #     packet = file.read()
+    #     print("raw_read_data:", ''.join('{:02x} '.format(x) for x in packet))
+    #     time.sleep(0.5)
 
     # Print the content of the packet array after the swap operation
     print('Raw packet:', packet)
