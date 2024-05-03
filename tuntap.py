@@ -104,7 +104,7 @@ def TunTap(nic_type,nic_name=None):
 class Tap(object):
     '''
     Linux Tap
-    please use TunTap(nic_type,nic_name) ,it will invoke this class if on linux
+    please use TunTap(nic_type,nic_name), it will invoke this class if on linux
     '''
     def __init__(self,nic_type,nic_name=None):
         self.nic_type = nic_type

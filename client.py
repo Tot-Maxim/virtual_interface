@@ -45,9 +45,7 @@ try:
         while True:
             Test_text = input('Enter the text to send to the interface:\n')
 
-            packet = Ether(dst=f'{Eth_dst}', src=f'{Eth_dst}') / IP(dst=f'{IP_dst}', src=f'{IP_dst}') / TCP(dport=12345,
-                                                                                                            sport=54321) / Raw(
-                load=f'{Test_text}')
+            packet = Ether(dst=f'{Eth_dst}', src=f'{Eth_dst}') / IP(dst=f'{IP_dst}', src=f'{IP_dst}') / TCP(dport=12345, sport=54321) / Raw(load=f'{Test_text}')
 
             # Read data from the TAP interface
             sendp(packet, iface='tap0')
