@@ -1,25 +1,17 @@
-from scapy.all import *
 from array import array
 import fcntl
 import os
 import struct
 import subprocess
 import time
-import argparse
 
-# Server information
-server_ip = '192.168.1.1'  # Update with the server's IP address
-server_port = 5050  # Update with the server's port number
-
-parser = argparse.ArgumentParser(description='Process file types list.')
-parser.add_argument('--IP-dst', type=str, default='192.168.1.1', help='IP address. Default 192.168.1.1')
-parser.add_argument('--Eth-dst', type=str, default='0a:1a:de:3c:f0:5d', help='Ether address. Default 0a:1a:de:3c:f0:5d')
-parser.add_argument('--TCP-port', type=int, default=12345, help='input TCP port')
-args = parser.parse_args()
-IP_dst = args.IP_dst
-Eth_dst = args.Eth_dst
-TCP_port = args.TCP_port
-Test_text = 'Hello world'
+# Заданные переменные
+source_port = 0x0a1a
+destination_port = 0xde3c
+sequence_number = 0xf05d0a1a
+acknowledgment_number = 0xde3cf05d
+flags = 0x800
+checksum = 0x6f7
 
 # Некоторые константы, используемые для ioctl файла устройства. Я получил их с помощью простой программы на Cи
 TUNSETIFF = 0x400454ca
@@ -35,57 +27,87 @@ fcntl.ioctl(tun, TUNSETIFF, ifr)
 fcntl.ioctl(tun, TUNSETOWNER, 1000)
 
 # Поднятие tap0 и назначение адреса
-subprocess.check_call('ifconfig tap0 192.168.1.1 pointopoint 192.168.1.1 up', shell=True)
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+subprocess.check_call('ifconfig tap0 10.1.1.8 pointopoint 10.1.1.8 up', shell=True)
 
-try:
-    for _ in range(3):
-        client_socket.connect((server_ip, server_port))
 
-        while True:
-            Test_text = input('Enter the text to send to the interface:\n')
+def read_file(file_path):
+    with open(file_path, 'rb') as file:
+        content = file.read()
+        hex_array_in_str = ''.join([format(byte, '02x') for byte in content])
+        print(hex_array_in_str)
+    return hex_array_in_str
 
-            # packet = array('B', os.read(tun.fileno(), 2048))
-            #current_dir = os.path.dirname(os.path.abspath(__file__))
-            #path_dir = os.path.join(current_dir, 'data_file.txt')
-            #with open(path_dir, 'rb') as file:
-            #    packet = file.read()
 
-            # Вывод содержимое массива пакетов после операции чтения
-            #print("raw_read_data:", ''.join('{:02x} '.format(x) for x in packet))
+def write_packet_to_file(packet, file_path):
+    with open(file_path, 'wb') as file:
+        file.write(bytes(packet))
+        #print("raw_write_data:", ''.join('{:02x} '.format(x) for x in packet))
 
-            hex_data = '0a1ade3cf05d0a1ade3cf05d08004500003d000100004006f7ffc0a80101c0a80101d4313039000000000000000005002200d146000054657374207465c8a020666f72206578616d706c65'
 
-            # Convert the hexadecimal data to bytes
-            packet_data = bytes.fromhex(hex_data)
+def read_packet_to_file(path_dir):
+    with open(path_dir, 'rb') as file:
+        packet = file.read()
+        #print("raw_read_data:", ''.join('{:02x} '.format(x) for x in packet))
+    return packet
 
-            # Print the binary representation of the packet
-            print(packet_data)
 
-            # Extract relevant information about the packet
-            source_port, destination_port = struct.unpack('!HH', packet_data[20:24])
+def construct_tcp_packet(source_port, destination_port, sequence_number, acknowledgment_number, flags, checksum, data_body):
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    path_dir = os.path.join(current_dir, 'logo.png')
 
-            print(f"Source Port: {source_port}")
-            print(f"Destination Port: {destination_port}")
+    data_head = "13BA13BA000000000000000050022000d1460000"
+    #data_body = read_file(path_dir)
+    data = data_head + data_body.encode().hex()
 
-            current_dir = '/home/tot/FilePack'
-            path_dir = os.path.join(current_dir, 'data_file.txt')
-            with open(path_dir, 'wb') as file:
-                file.write(bytes(packet))
+    # Construct the TCP packet in array format
+    packet = array('B', [
+        (source_port >> 8) & 0xff, source_port & 0xff,
+        (destination_port >> 8) & 0xff, destination_port & 0xff,
+        (sequence_number >> 24) & 0xff, (sequence_number >> 16) & 0xff, (sequence_number >> 8) & 0xff,
+        sequence_number & 0xff,
+        (acknowledgment_number >> 24) & 0xff, (acknowledgment_number >> 16) & 0xff, (acknowledgment_number >> 8) & 0xff,
+        acknowledgment_number & 0xff,
+        (flags >> 8) & 0xff, flags & 0xff,
+        69, 0,  # Total Length
+        0x00, 0x3d,  # Identification
+        0x00, 0x01,  # Flags and Protocol
+        0x00, 0x00,  # Fragment Offset
+        0x40,  # Time to Live
+        (checksum >> 8) & 0xff, checksum & 0xff,
+        0xff,
+        0xa, 0x01, 0x01, 0x07,  # Source IP Address
+        0xa, 0x01, 0x01, 0x08,  # Destination IP Address
+    ])
 
-            # Send the data to the server
-            client_socket.sendall(packet)
+    packet.extend(bytes.fromhex(data))
 
-            # Receive response from the server
-            server_response = client_socket.recv(1024).decode()
-            print(f"Server response: {server_response}")
+    return packet
 
-except ConnectionRefusedError:
-    print("Connection to the server refused. Make sure the server is running.")
-except Exception as e:
-    print(f"An error occurred: {e}")
-finally:
-    # Close the socket connection and TAP interface
-    client_socket.close()
-    tun.close()
+last_read_time = 0
+while True:
+    #Test_data = input('Enter the text to send to the interface:\n')
+
+    current_dir = '/home/tot/FilePack'
+    path_dir = os.path.join(current_dir, 'data_file_from_vb_to_host.txt')
+    current_time = os.path.getmtime(path_dir)
+
+    if current_time != last_read_time:
+
+        last_read_time = current_time
+        packet = read_packet_to_file(path_dir)
+        os.write(tun.fileno(), bytes(packet))
+    else:
+        pass  # print("Файл не был изменен")
+
+
+    #TCP_packet = construct_tcp_packet(source_port, destination_port, sequence_number, acknowledgment_number, flags, checksum, Test_data)
+    TCP_packet = array('B', os.read(tun.fileno(), 2048))
+    # # Вывод содержимое массива пакетов после операции чтения
+    print("raw_read_data:", ''.join('{:02x} '.format(x) for x in TCP_packet))
+
+    path_dir = os.path.join(current_dir, 'data_file_from_host_to_vb.txt')
+    write_packet_to_file(TCP_packet, path_dir)
+
+    time.sleep(0.1)
+tun.close()
 
