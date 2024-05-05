@@ -4,6 +4,7 @@ import os
 import struct
 import subprocess
 import time
+import tempfile
 
 # Заданные переменные
 source_port = 0x0a1a
@@ -27,7 +28,42 @@ fcntl.ioctl(tun, TUNSETIFF, ifr)
 fcntl.ioctl(tun, TUNSETOWNER, 1000)
 
 # Поднятие tap0 и назначение адреса
-subprocess.check_call('ifconfig tap0 10.1.1.8 pointopoint 10.1.1.8 up', shell=True)
+subprocess.check_call('ifconfig tap0 10.1.1.7 pointopoint 10.1.1.7 up', shell=True)
+
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
+class AtomicWrite():
+    def __init__(self, path, mode='w', encoding='utf-8'):
+        self.path = path
+        self.mode = mode if mode == 'wb' else 'w'
+        self.encoding = encoding
+
+    def __enter__(self):
+        self.temp_file = tempfile.NamedTemporaryFile(
+            mode=self.mode,
+            encoding=self.encoding if self.mode != 'wb' else None,
+            delete=False
+        )
+        return self.temp_file
+
+    def __exit__(self, exc_type, exc_message, traceback):
+        self.temp_file.close()
+        if exc_type is None:
+            os.rename(self.temp_file.name, self.path)
+            os.chmod(self.path, 0o664)
+        else:
+            os.unlink(self.temp_file.name)
 
 
 def read_file(file_path):
@@ -39,15 +75,15 @@ def read_file(file_path):
 
 
 def write_packet_to_file(packet, file_path):
-    with open(file_path, 'wb') as file:
-        file.write(bytes(packet))
-        #print("raw_write_data:", ''.join('{:02x} '.format(x) for x in packet))
+    with AtomicWrite(path_dir, 'wb') as file:
+        for x in packet:
+            file.write(bytes([x]))
 
 
 def read_packet_to_file(path_dir):
     with open(path_dir, 'rb') as file:
         packet = file.read()
-        #print("raw_read_data:", ''.join('{:02x} '.format(x) for x in packet))
+        print( bcolors.OKGREEN + "raw_read_data:" + bcolors.ENDC, ''.join('{:02x} '.format(x) for x in packet))
     return packet
 
 
@@ -97,17 +133,16 @@ while True:
         packet = read_packet_to_file(path_dir)
         os.write(tun.fileno(), bytes(packet))
     else:
-        pass  # print("Файл не был изменен")
+        try:
+            TCP_packet = array('B', os.read(tun.fileno(), 2048))
+            path_dir = os.path.join(current_dir, 'data_file_from_host_to_vb.txt')
+            write_packet_to_file(TCP_packet, path_dir)
+            # Вывод содержимое массива пакетов после операции чтения
+            print(bcolors.WARNING + "raw_write_data:" + bcolors.ENDC, ''.join('{:02x} '.format(x) for x in TCP_packet))
+            # TCP_packet = construct_tcp_packet(source_port, destination_port, sequence_number, acknowledgment_number, flags, checksum, Test_data)
+        except:
+            pass
 
-
-    #TCP_packet = construct_tcp_packet(source_port, destination_port, sequence_number, acknowledgment_number, flags, checksum, Test_data)
-    TCP_packet = array('B', os.read(tun.fileno(), 2048))
-    # # Вывод содержимое массива пакетов после операции чтения
-    print("raw_read_data:", ''.join('{:02x} '.format(x) for x in TCP_packet))
-
-    path_dir = os.path.join(current_dir, 'data_file_from_host_to_vb.txt')
-    write_packet_to_file(TCP_packet, path_dir)
-
-    time.sleep(0.1)
+    #time.sleep(0.1)
 tun.close()
 
