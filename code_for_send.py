@@ -3,9 +3,7 @@ import fcntl
 import os
 import struct
 import subprocess
-import time
 import tempfile
-import signal
 
 def signal_handler(sig, frame):
     try:
@@ -22,6 +20,9 @@ sequence_number = 0xf05d0a1a
 acknowledgment_number = 0xde3cf05d
 flags = 0x800
 checksum = 0x6f7
+state = 1
+current_dir = '/home/tot/FilePack'
+path_dir = os.path.join(current_dir, 'data_file.docx')
 
 # Некоторые константы, используемые для ioctl файла устройства. Я получил их с помощью простой программы на Cи
 TUNSETIFF = 0x400454ca
@@ -76,18 +77,10 @@ class AtomicWrite():
             print(bcolors.FAIL + "Break")
 
 
-def read_file(file_path):
-    with open(file_path, 'rb') as file:
-        content = file.read()
-        hex_array_in_str = ''.join([format(byte, '02x') for byte in content])
-        print(hex_array_in_str)
-    return hex_array_in_str
-
-
 def write_packet_to_file(packet, file_path):
+    global state
     directory = os.path.dirname(file_path)
     flag_file = os.path.join(directory, 'flag_to_vb.txt')
-
     if not os.path.exists(flag_file):
         try:
             with AtomicWrite(file_path, 'wb') as file:
@@ -95,42 +88,31 @@ def write_packet_to_file(packet, file_path):
                     file.write(bytes([x]))
                 # Вывод содержимого массива пакетов после операции записи
                 print(bcolors.WARNING + "raw_write_data:" + bcolors.ENDC,
-                      ''.join('{:02x} '.format(x) for x in TCP_packet))
-
-            # Создаем файл-флаг после успешной записи
-            open(flag_file, 'w').close()
-        except Exception as e:
-            print(bcolors.FAIL + "Failed to write data. Retrying in 0.1 seconds...")
-            time.sleep(0.1)
-    else:
-        pass
+                      ''.join('{:02x} '.format(x) for x in packet))
+                state = 3
+                open(flag_file, 'w').close()
+        except:
+            print(bcolors.FAIL + "Failed to write data" + bcolors.ENDC)
+    return state
 
 
-
-def read_packet_to_file(path_dir):
+def read_packet(path_dir):
     directory = os.path.dirname(path_dir)
     flag_file = os.path.join(directory, 'flag_to_host.txt')
-
-    if os.path.exists(flag_file):
-        os.remove(flag_file)
+    if not os.path.exists(flag_file):
         with open(path_dir, 'rb') as file:
-            packet = file.read()
-            os.write(tun.fileno(), bytes(packet))
-            print(bcolors.OKGREEN + "raw_read_data:" + bcolors.ENDC, ''.join('{:02x} '.format(x) for x in packet))
-        return packet
-    else:
-        print(bcolors.FAIL + "Flag file does not exist. Skipping reading.")
-        return None
+            to_TCP = file.read()
+            print(bcolors.OKGREEN + "raw_read_data:" + bcolors.ENDC, ''.join('{:02x} '.format(x) for x in to_TCP))
+            open(flag_file, 'w').close()
+            return to_TCP
 
 
 def construct_tcp_packet(source_port, destination_port, sequence_number, acknowledgment_number, flags, checksum, data_body):
     current_dir = os.path.dirname(os.path.abspath(__file__))
     path_dir = os.path.join(current_dir, 'logo.png')
-
     data_head = "13BA13BA000000000000000050022000d1460000"
     #data_body = read_file(path_dir)
     data = data_head + data_body.encode().hex()
-
     # Construct the TCP packet in array format
     packet = array('B', [
         (source_port >> 8) & 0xff, source_port & 0xff,
@@ -150,31 +132,30 @@ def construct_tcp_packet(source_port, destination_port, sequence_number, acknowl
         0xa, 0x01, 0x01, 0x07,  # Source IP Address
         0xa, 0x01, 0x01, 0x08,  # Destination IP Address
     ])
-
     packet.extend(bytes.fromhex(data))
-
     return packet
 
-last_read_time = 0
 while True:
     #Test_data = input('Enter the text to send to the interface:\n')
+    #current_dir = os.path.dirname(os.path.abspath(__file__))
+    print(state)
+    if state == 1:
+        from_TCP = array('B', os.read(tun.fileno(), 2048))
+        if from_TCP:
+            state = 2
+    if state == 2:
+        state = write_packet_to_file(from_TCP, path_dir)
+    if state == 3:
+        to_TCP = read_packet(path_dir)
+        if to_TCP:
+            state = 4
+    if state == 4:
+        os.write(tun.fileno(), bytes(to_TCP))
+        state = 1
 
 
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    # current_dir = '/home/tot/FilePack'
-    path_dir = os.path.join(current_dir, 'data_file_from_vb_to_host.txt')
-    current_time = os.path.getmtime(path_dir)
 
-    if current_time != last_read_time:
-        last_read_time = current_time
-        packet = read_packet_to_file(path_dir)
-    else:
-        TCP_packet = array('B', os.read(tun.fileno(), 2048))
-        path_dir = os.path.join(current_dir, 'data_file.txt')
-        write_packet_to_file(TCP_packet, path_dir)
     # TCP_packet = construct_tcp_packet(source_port, destination_port, sequence_number, acknowledgment_number, flags, checksum, Test_data)
 
-
-    time.sleep(0.2)
 tun.close()
 

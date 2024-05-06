@@ -3,7 +3,7 @@ import os
 import time
 
 # Server information
-server_ip = '10.1.1.7'  # Update with the server's IP address
+server_ip = '10.1.1.8'  # Update with the server's IP address
 server_port = 5050  # Update with the server's port number
 # Client code to send data to the server
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -31,7 +31,8 @@ try:
             if byte_text:# Send the data to the server
                 client_socket.sendall(byte_text.encode())
                 #server_response = client_socket.recv(1024).decode('utf-8')
-                print("\nServer response\n")
+                print("\nServer response")
+            client_socket.close()
 
 except ConnectionRefusedError:
     print("Connection to the server refused. Make sure the server is running.")
