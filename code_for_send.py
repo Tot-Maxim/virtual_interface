@@ -159,7 +159,9 @@ last_read_time = 0
 while True:
     #Test_data = input('Enter the text to send to the interface:\n')
 
-    current_dir = '/home/tot/FilePack'
+
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    # current_dir = '/home/tot/FilePack'
     path_dir = os.path.join(current_dir, 'data_file_from_vb_to_host.txt')
     current_time = os.path.getmtime(path_dir)
 
