@@ -1,43 +1,43 @@
-import socket
-import os
-import time
+from socket import *
+from struct import pack
 
-# Server information
-server_ip = '10.1.1.8'  # Update with the server's IP address
-server_port = 5050  # Update with the server's port number
-# Client code to send data to the server
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-def read_file(file_path):
-    with open(file_path, 'rb') as file:
-        content = file.read()
-        hex_array_in_str = ''.join([format(byte, '02x') for byte in content])
-        print(content)
-        print(len(content))
-    return hex_array_in_str
+class ClientProtocol:
 
-try:
-    for _ in range(3):
-        client_socket.connect((server_ip, server_port))
+    def __init__(self):
+        self.socket = None
 
-        while True:
-            Test_text = input('Enter the text to send to the interface:\n')
-            current_dir = os.path.dirname(os.path.abspath(__file__))
-            path_dir = os.path.join(current_dir, 'logo.png')
-            byte_text = read_file(path_dir)
-            path_dir_logo = os.path.join(current_dir, 'logo_rec.png')
-            byte_text_logo = read_file(path_dir_logo)
+    def connect(self, server_ip, server_port):
+        self.socket = socket(AF_INET, SOCK_STREAM)
+        self.socket.connect((server_ip, server_port))
 
-            if byte_text:# Send the data to the server
-                client_socket.sendall(byte_text.encode())
-                #server_response = client_socket.recv(1024).decode('utf-8')
-                print("\nServer response")
-            client_socket.close()
+    def close(self):
+        self.socket.shutdown(SHUT_WR)
+        self.socket.close()
+        self.socket = None
 
-except ConnectionRefusedError:
-    print("Connection to the server refused. Make sure the server is running.")
-except Exception as e:
-    print(f"An error occurred: {e}")
-finally:
-    # Close the socket connection and TAP interface
-    client_socket.close()
+    def send_image(self, image_data):
+
+        # use struct to make sure we have a consistent endianness on the length
+        length = pack('>Q', len(image_data))
+
+        # sendall to make sure it blocks if there's back-pressure on the socket
+        self.socket.sendall(length)
+        self.socket.sendall(image_data)
+
+        ack = self.socket.recv(1)
+
+
+if __name__ == '__main__':
+    Test_text = input('Enter the text to send to the interface:\n')
+    print('START CLIENT')
+    cp = ClientProtocol()
+
+    image_data = None
+    with open('logo.png', 'rb') as file:
+        image_data = file.read()
+
+    assert(len(image_data))
+    cp.connect('10.1.1.7', 5050)
+    cp.send_image(image_data)
+    cp.close()

@@ -21,7 +21,8 @@ acknowledgment_number = 0xde3cf05d
 flags = 0x800
 checksum = 0x6f7
 state = 1
-current_dir = '/home/tot/FilePack'
+current_dir = os.path.dirname(os.path.abspath(__file__))
+# current_dir = '/home/tot/FilePack'
 path_dir = os.path.join(current_dir, 'data_file.docx')
 
 # Некоторые константы, используемые для ioctl файла устройства. Я получил их с помощью простой программы на Cи
@@ -89,7 +90,7 @@ def write_packet_to_file(packet, file_path):
                 # Вывод содержимого массива пакетов после операции записи
                 print(bcolors.WARNING + "raw_write_data:" + bcolors.ENDC,
                       ''.join('{:02x} '.format(x) for x in packet))
-                state = 3
+                state = 1
                 open(flag_file, 'w').close()
         except:
             print(bcolors.FAIL + "Failed to write data" + bcolors.ENDC)
@@ -135,24 +136,23 @@ def construct_tcp_packet(source_port, destination_port, sequence_number, acknowl
     packet.extend(bytes.fromhex(data))
     return packet
 
+
+print(bcolors.OKGREEN + "TUN TAP IS START" + bcolors.ENDC)
 while True:
     #Test_data = input('Enter the text to send to the interface:\n')
-    #current_dir = os.path.dirname(os.path.abspath(__file__))
-    print(state)
     if state == 1:
         from_TCP = array('B', os.read(tun.fileno(), 2048))
         if from_TCP:
             state = 2
     if state == 2:
         state = write_packet_to_file(from_TCP, path_dir)
-    if state == 3:
-        to_TCP = read_packet(path_dir)
-        if to_TCP:
-            state = 4
-    if state == 4:
-        os.write(tun.fileno(), bytes(to_TCP))
-        state = 1
-
+    # if state == 3:
+    #     to_TCP = read_packet(path_dir)
+    #     if to_TCP:
+    #         state = 4
+    # if state == 4:
+    #     os.write(tun.fileno(), bytes(to_TCP))
+    #     state = 1
 
 
     # TCP_packet = construct_tcp_packet(source_port, destination_port, sequence_number, acknowledgment_number, flags, checksum, Test_data)
