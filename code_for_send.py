@@ -5,6 +5,11 @@ import struct
 import subprocess
 import tempfile
 
+try:
+    subprocess.check_call('sudo ip route delete 10.0.0.0/7 dev tap0 proto kernel scope link src 10.1.1.7', shell=True)
+except:
+    pass
+
 def signal_handler(sig, frame):
     try:
         print('CTRL + C detected. Exiting gracefully...')
@@ -98,14 +103,10 @@ def write_packet_to_file(packet, file_path):
 
 
 def read_packet(path_dir):
-    directory = os.path.dirname(path_dir)
-    flag_file = os.path.join(directory, 'flag_to_host.txt')
-    if not os.path.exists(flag_file):
-        with open(path_dir, 'rb') as file:
-            to_TCP = file.read()
-            print(bcolors.OKGREEN + "raw_read_data:" + bcolors.ENDC, ''.join('{:02x} '.format(x) for x in to_TCP))
-            open(flag_file, 'w').close()
-            return to_TCP
+    with open(path_dir, 'rb') as file:
+        to_TCP = file.read()
+        print(bcolors.OKGREEN + "raw_read_data:" + bcolors.ENDC, ''.join('{:02x} '.format(x) for x in to_TCP))
+        return to_TCP
 
 
 def construct_tcp_packet(source_port, destination_port, sequence_number, acknowledgment_number, flags, checksum, data_body):

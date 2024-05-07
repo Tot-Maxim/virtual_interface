@@ -38,7 +38,7 @@ class ServerProtocol:
                     connection.close()
 
                 with open(os.path.join(
-                        self.output_dir, '%06d.png' % self.file_num), 'wb'
+                        self.output_dir, 'Copy_' + '%02d.png' % self.file_num), 'wb'
                 ) as fp:
                     fp.write(data)
                     print('File write success')
@@ -51,7 +51,6 @@ class ServerProtocol:
         self.socket.close()
         self.socket = None
 
-        # could handle a bad ack here, but we'll assume it's fine.
 
 if __name__ == '__main__':
     print('START SERVER')
