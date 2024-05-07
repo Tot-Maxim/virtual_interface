@@ -2,7 +2,8 @@ import os
 from socket import *
 from struct import unpack
 
-
+ip_address = '10.1.1.8'
+TCP_port = 5050
 class ServerProtocol:
 
     def __init__(self):
@@ -54,7 +55,8 @@ class ServerProtocol:
 
 if __name__ == '__main__':
     print('START SERVER')
+
     sp = ServerProtocol()
-    sp.listen('10.1.1.7', 5050)
-    print('Server listen...')
+    sp.listen(ip_address, TCP_port)
+    print(f'Server listen {ip_address, TCP_port}')
     sp.handle_images()

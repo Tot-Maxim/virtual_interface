@@ -4,6 +4,7 @@ import os
 import struct
 import subprocess
 import tempfile
+import time
 
 try:
     subprocess.check_call('sudo ip route delete 10.0.0.0/7 dev tap0 proto kernel scope link src 10.1.1.7', shell=True)
@@ -26,9 +27,11 @@ acknowledgment_number = 0xde3cf05d
 flags = 0x800
 checksum = 0x6f7
 state = 1
-current_dir = os.path.dirname(os.path.abspath(__file__))
-# current_dir = '/home/tot/FilePack'
-path_dir = os.path.join(current_dir, 'data_file.docx')
+
+temp_read = b''
+
+#current_dir = os.path.dirname(os.path.abspath(__file__))
+current_dir = '/home/tot/FilePack'
 
 # Некоторые константы, используемые для ioctl файла устройства. Я получил их с помощью простой программы на Cи
 TUNSETIFF = 0x400454ca
@@ -85,28 +88,43 @@ class AtomicWrite():
 
 def write_packet_to_file(packet, file_path):
     global state
-    directory = os.path.dirname(file_path)
-    flag_file = os.path.join(directory, 'flag_to_vb.txt')
-    if not os.path.exists(flag_file):
+    lock_file_path = file_path + '.lock'
+
+    try_count = 0
+    while try_count < 2:
         try:
-            with AtomicWrite(file_path, 'wb') as file:
-                for x in packet:
-                    file.write(bytes([x]))
-                # Вывод содержимого массива пакетов после операции записи
-                print(bcolors.WARNING + "raw_write_data:" + bcolors.ENDC,
-                      ''.join('{:02x} '.format(x) for x in packet))
-                state = 1
-                open(flag_file, 'w').close()
-        except:
-            print(bcolors.FAIL + "Failed to write data" + bcolors.ENDC)
-    return state
+            with open(lock_file_path, 'w') as lock_file:
+                fcntl.flock(lock_file, fcntl.LOCK_EX)  # Acquire an exclusive lock on the lock file
+
+                with open(file_path, 'wb') as file:
+                    file.write(packet)
+                    # Output the content of the packet array after the write operation
+                    print(bcolors.WARNING + "raw_write_data:" + bcolors.ENDC,
+                          ''.join('{:02x} '.format(x) for x in packet))
+                fcntl.flock(lock_file, fcntl.LOCK_UN)  # Release the lock on the lock file
+        except Exception as e:
+            try_count += 1
+            time.sleep(0.1)
+            print(f"Failed to write to file: {e}. Retrying...")
+            continue
+        finally:
+            if os.path.exists(lock_file_path):
+                os.remove(lock_file_path)
+                return True
+    else:
+        return False
 
 
 def read_packet(path_dir):
+    global temp_read
     with open(path_dir, 'rb') as file:
         to_TCP = file.read()
-        print(bcolors.OKGREEN + "raw_read_data:" + bcolors.ENDC, ''.join('{:02x} '.format(x) for x in to_TCP))
-        return to_TCP
+        if temp_read != to_TCP:
+            temp_read = to_TCP
+            print(bcolors.OKGREEN + "raw_read_data:" + bcolors.ENDC, ''.join('{:02x} '.format(x) for x in to_TCP))
+            return to_TCP
+        else:
+            pass
 
 
 def construct_tcp_packet(source_port, destination_port, sequence_number, acknowledgment_number, flags, checksum, data_body):
@@ -138,22 +156,31 @@ def construct_tcp_packet(source_port, destination_port, sequence_number, acknowl
     return packet
 
 
-print(bcolors.OKGREEN + "TUN TAP IS START" + bcolors.ENDC)
 while True:
     #Test_data = input('Enter the text to send to the interface:\n')
+    print('1', state)
     if state == 1:
         from_TCP = array('B', os.read(tun.fileno(), 2048))
         if from_TCP:
             state = 2
+    print('2', state)
     if state == 2:
-        state = write_packet_to_file(from_TCP, path_dir)
-    # if state == 3:
-    #     to_TCP = read_packet(path_dir)
-    #     if to_TCP:
-    #         state = 4
-    # if state == 4:
-    #     os.write(tun.fileno(), bytes(to_TCP))
-    #     state = 1
+        path_dir = os.path.join(current_dir, 'from_host.docx')
+        if write_packet_to_file(from_TCP, path_dir):
+            state = 3
+    print('3', state)
+    if state == 3:
+        path_dir = os.path.join(current_dir, 'from_virtual.docx')
+        to_TCP = read_packet(path_dir)
+        if to_TCP:
+            state = 4
+        else:
+            state = 1
+    print('4', state)
+    if state == 4:
+        os.write(tun.fileno(), bytes(to_TCP))
+        state = 1
+    time.sleep(0.3)
 
 
     # TCP_packet = construct_tcp_packet(source_port, destination_port, sequence_number, acknowledgment_number, flags, checksum, Test_data)
