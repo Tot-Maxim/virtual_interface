@@ -80,26 +80,6 @@ class AtomicWrite():
 
 def write_packet_to_file(packet, file_path):
     lock_file_path = file_path + '.lock'
-    for _ in range(2):
-        try:
-            with open(lock_file_path, 'w') as lock_file:
-                fcntl.flock(lock_file, fcntl.LOCK_EX)  # Acquire an exclusive lock on the lock file
-                with open(file_path, 'ab+') as file:
-                    file.write(packet)
-                    file.write(b'\tot')
-                    print(f'Write data in {file_path}: {packet!r}')
-
-                fcntl.flock(lock_file, fcntl.LOCK_UN)  # Release the lock on the lock file
-            return True
-        except Exception as e:
-            print(f"Failed to write to file: {e}. Retrying...")
-            time.sleep(0.1)
-    return False
-
-
-
-def write_packet_to_file(packet, file_path):
-    lock_file_path = file_path + '.lock'
 
     for _ in range(2):
         try:
@@ -108,7 +88,7 @@ def write_packet_to_file(packet, file_path):
 
                 with open(file_path, 'ab+') as file:
                     file.write(packet)
-                    file.write(b'\tot')
+                    file.write(b'\t0t')
                     print(bcolors.WARNING + f'Write data in {file_path}: ' + bcolors.ENDC,
                           ''.join('{:02x} '.format(x) for x in packet))
                 fcntl.flock(lock_file, fcntl.LOCK_UN)  # Release the lock on the lock file
@@ -127,7 +107,7 @@ def read_packet(path_dir):
     global temp_read
     with open(path_dir, 'rb+') as file:
         content = file.read()
-        index = content.find(b'\tot')
+        index = content.find(b'\t0t')
 
         if index != -1:
             to_TCP = content[:index]

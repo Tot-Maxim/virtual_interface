@@ -19,7 +19,7 @@ class bcolors:
 def read_packet(path_dir):
     with open(path_dir, 'rb+') as file:
         content = file.read()
-        index = content.find(b'\tot')
+        index = content.find(b'\t0t')
 
         if index != -1:
             to_TCP = content[:index]
