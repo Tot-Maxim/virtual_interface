@@ -30,8 +30,8 @@ state = 1
 
 temp_read = b''
 
-#current_dir = os.path.dirname(os.path.abspath(__file__))
-current_dir = '/home/tot/FilePack'
+current_dir = os.path.dirname(os.path.abspath(__file__))
+#current_dir = '/home/tot/FilePack'
 
 # Некоторые константы, используемые для ioctl файла устройства. Я получил их с помощью простой программы на Cи
 TUNSETIFF = 0x400454ca
@@ -99,7 +99,7 @@ def write_packet_to_file(packet, file_path):
                 with open(file_path, 'wb') as file:
                     file.write(packet)
                     # Output the content of the packet array after the write operation
-                    print(bcolors.WARNING + "raw_write_data:" + bcolors.ENDC,
+                    print(bcolors.WARNING + f'Write data in {file_path}: ' + bcolors.ENDC,
                           ''.join('{:02x} '.format(x) for x in packet))
                 fcntl.flock(lock_file, fcntl.LOCK_UN)  # Release the lock on the lock file
         except Exception as e:
@@ -121,7 +121,7 @@ def read_packet(path_dir):
         to_TCP = file.read()
         if temp_read != to_TCP:
             temp_read = to_TCP
-            print(bcolors.OKGREEN + "raw_read_data:" + bcolors.ENDC, ''.join('{:02x} '.format(x) for x in to_TCP))
+            print(bcolors.OKGREEN + f'Read_data in {path_dir}:' + bcolors.ENDC, ''.join('{:02x} '.format(x) for x in to_TCP))
             return to_TCP
         else:
             pass
