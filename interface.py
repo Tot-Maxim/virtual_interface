@@ -24,7 +24,7 @@ class ClientProtocol:
         self.socket = None
 
     def send_image(self, image_data):
-        # use struct to make sure we have a consistent endianness on the length
+        # use struct to make sure
         length = pack('>Q', len(image_data))
 
         # sendall to make sure it blocks if there's back-pressure on the socket
@@ -40,7 +40,7 @@ def run_shell_script():
         command = f"echo {password} | sudo -S ./run.sh"
         rc = subprocess.Popen(command, shell=True)
         if password:
-            label.config(text="Запуск tap интерфейса прошел успешно", fg='white')
+            label.config(text="Запуск tap интерфейса", fg='white')
         else:
             label.config(text="Введите пароль ОС", fg='red')
     except Exception as e:
@@ -77,12 +77,10 @@ def send_file():
     else:
         label_port.config(text=f'Введите TCP-порт', fg='red')
 
-
     cp.connect(address, int(port))
     cp.send_image(image_data)
     cp.close()
     print('Отправка завершена')
-
 
 
 def create_label(text='', row: int = 0, column: int = 0):
@@ -93,7 +91,7 @@ def create_label(text='', row: int = 0, column: int = 0):
 
 def create_entry(row: int = 0, column: int = 0, show=''):
     item = Entry(window, show=show)
-    item.grid(row=row, column=column, padx=10, pady=(30, 10), sticky="ew")
+    item.grid(row=row, column=column, padx=10, pady=(50, 10), sticky="ew")
     return item
 
 

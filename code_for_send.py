@@ -19,15 +19,7 @@ def signal_handler(sig, frame):
     except:
         pass
 
-# Заданные переменные
-source_port = 0x0a1a
-destination_port = 0xde3c
-sequence_number = 0xf05d0a1a
-acknowledgment_number = 0xde3cf05d
-flags = 0x800
-checksum = 0x6f7
 state = 1
-
 temp_read = b''
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -87,23 +79,40 @@ class AtomicWrite():
 
 
 def write_packet_to_file(packet, file_path):
-    global state
+    lock_file_path = file_path + '.lock'
+    for _ in range(2):
+        try:
+            with open(lock_file_path, 'w') as lock_file:
+                fcntl.flock(lock_file, fcntl.LOCK_EX)  # Acquire an exclusive lock on the lock file
+                with open(file_path, 'ab+') as file:
+                    file.write(packet)
+                    file.write(b'\tot')
+                    print(f'Write data in {file_path}: {packet!r}')
+
+                fcntl.flock(lock_file, fcntl.LOCK_UN)  # Release the lock on the lock file
+            return True
+        except Exception as e:
+            print(f"Failed to write to file: {e}. Retrying...")
+            time.sleep(0.1)
+    return False
+
+
+
+def write_packet_to_file(packet, file_path):
     lock_file_path = file_path + '.lock'
 
-    try_count = 0
-    while try_count < 2:
+    for _ in range(2):
         try:
             with open(lock_file_path, 'w') as lock_file:
                 fcntl.flock(lock_file, fcntl.LOCK_EX)  # Acquire an exclusive lock on the lock file
 
-                with open(file_path, 'wb') as file:
+                with open(file_path, 'ab+') as file:
                     file.write(packet)
-                    # Output the content of the packet array after the write operation
+                    file.write(b'\tot')
                     print(bcolors.WARNING + f'Write data in {file_path}: ' + bcolors.ENDC,
                           ''.join('{:02x} '.format(x) for x in packet))
                 fcntl.flock(lock_file, fcntl.LOCK_UN)  # Release the lock on the lock file
         except Exception as e:
-            try_count += 1
             time.sleep(0.1)
             print(f"Failed to write to file: {e}. Retrying...")
             continue
@@ -111,58 +120,37 @@ def write_packet_to_file(packet, file_path):
             if os.path.exists(lock_file_path):
                 os.remove(lock_file_path)
                 return True
-    else:
-        return False
+    return False
 
 
 def read_packet(path_dir):
     global temp_read
-    with open(path_dir, 'rb') as file:
-        to_TCP = file.read()
-        if temp_read != to_TCP:
-            temp_read = to_TCP
-            print(bcolors.OKGREEN + f'Read_data in {path_dir}:' + bcolors.ENDC, ''.join('{:02x} '.format(x) for x in to_TCP))
-            return to_TCP
-        else:
-            pass
+    with open(path_dir, 'rb+') as file:
+        content = file.read()
+        index = content.find(b'\tot')
 
+        if index != -1:
+            to_TCP = content[:index]
+            content = content[index + 3:]
 
-def construct_tcp_packet(source_port, destination_port, sequence_number, acknowledgment_number, flags, checksum, data_body):
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    path_dir = os.path.join(current_dir, 'logo.png')
-    data_head = "13BA13BA000000000000000050022000d1460000"
-    #data_body = read_file(path_dir)
-    data = data_head + data_body.encode().hex()
-    # Construct the TCP packet in array format
-    packet = array('B', [
-        (source_port >> 8) & 0xff, source_port & 0xff,
-        (destination_port >> 8) & 0xff, destination_port & 0xff,
-        (sequence_number >> 24) & 0xff, (sequence_number >> 16) & 0xff, (sequence_number >> 8) & 0xff,
-        sequence_number & 0xff,
-        (acknowledgment_number >> 24) & 0xff, (acknowledgment_number >> 16) & 0xff, (acknowledgment_number >> 8) & 0xff,
-        acknowledgment_number & 0xff,
-        (flags >> 8) & 0xff, flags & 0xff,
-        69, 0,  # Total Length
-        0x00, 0x3d,  # Identification
-        0x00, 0x01,  # Flags and Protocol
-        0x00, 0x00,  # Fragment Offset
-        0x40,  # Time to Live
-        (checksum >> 8) & 0xff, checksum & 0xff,
-        0xff,
-        0xa, 0x01, 0x01, 0x07,  # Source IP Address
-        0xa, 0x01, 0x01, 0x08,  # Destination IP Address
-    ])
-    packet.extend(bytes.fromhex(data))
-    return packet
+            if temp_read != to_TCP:
+                temp_read = to_TCP
+                print(bcolors.OKGREEN + f'Read_data in {path_dir}:' + bcolors.ENDC, ''.join('{:02x} '.format(x) for x in to_TCP))
+                return to_TCP
+            else:
+                pass
+            file.seek(0)
+            file.truncate()
+            file.write(content)
 
 
 while True:
-    #Test_data = input('Enter the text to send to the interface:\n')
     print('1', state)
     if state == 1:
         from_TCP = array('B', os.read(tun.fileno(), 2048))
         if from_TCP:
             state = 2
+            print(bytes(from_TCP))
     print('2', state)
     if state == 2:
         path_dir = os.path.join(current_dir, 'from_host.docx')
@@ -181,9 +169,6 @@ while True:
         os.write(tun.fileno(), bytes(to_TCP))
         state = 1
     time.sleep(0.3)
-
-
-    # TCP_packet = construct_tcp_packet(source_port, destination_port, sequence_number, acknowledgment_number, flags, checksum, Test_data)
 
 tun.close()
 
