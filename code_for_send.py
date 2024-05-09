@@ -1,44 +1,21 @@
-from scapy.layers.l2 import Ether
-from scapy.layers.inet import IP, ICMP
-from scapy.packet import Raw
-from scapy.all import *
-from array import array
 import fcntl
 import os
 import struct
 import subprocess
 import time
-import threading
-import select
 
-try:
-    subprocess.check_call('sudo ip route delete 10.0.0.0/7 dev tap0 proto kernel scope link src 10.1.1.7', shell=True)
-except:
-    pass
-
-state = 1
 temp_read = b''
 file_from_virtual = 'from_virtual'
 file_from_host = 'from_host'
 DST_IP = '10.1.1.8'
 SRC_IP = '10.1.1.7'
-#CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-CURRENT_DIR = '/home/tot/FilePack'
-PACK = Ether(dst="0a:1a:de:3c:f0:5d", src="0a:1a:de:3c:f0:5d") / IP(dst=DST_IP, src=SRC_IP) / ICMP(
-    type="echo-request") / Raw(load='Check connect to host')
-read_lock = threading.Lock()
 
 
 class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
     OKGREEN = '\033[92m'
     WARNING = '\033[93m'
     FAIL = '\033[91m'
     ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
 
 
 class TAP_Manager:
@@ -48,7 +25,6 @@ class TAP_Manager:
         self.temp_read = temp_read
         self.src_ip = SRC_IP
         self.dst_ip = DST_IP
-        self.read_lock = threading.Lock()
         self.tun_setup()
 
     def tun_setup(self):
@@ -116,41 +92,3 @@ class TAP_Manager:
                 file.write(after_content)
             else:
                 return True
-
-
-tap_manager = TAP_Manager()
-tun = tap_manager.tun_setup()
-
-while True:
-    print('1', state)
-    if state == 1:
-        try:
-            read_lock.acquire()
-            timeout = time.time() + 2
-            while True:
-                readable, _, errors = select.select([tun.fileno()], [], [tun.fileno()], 0.5)
-                if tun.fileno() in readable:
-                    from_TCP = array('B', os.read(tun.fileno(), 1522))
-                    break
-                if tun.fileno() in errors:
-                    print("Error reading from tap")
-                    break
-                if time.time() > timeout:
-                    sendp(PACK, iface="tap0")
-                    break
-        finally:
-            read_lock.release()
-        if from_TCP:
-            state = 2
-    print('2', state)
-    if state == 2:
-        path_dir = os.path.join(CURRENT_DIR, file_from_host)
-        if tap_manager.write_packet_to_file(from_TCP, path_dir):
-            state = 3
-    print('3', state)
-    if state == 3:
-        path_dir = os.path.join(CURRENT_DIR, file_from_virtual)
-        if tap_manager.read_packet(path_dir):
-            state = 1
-
-tun.close()
