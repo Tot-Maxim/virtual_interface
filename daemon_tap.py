@@ -1,10 +1,10 @@
-from code_for_send import TAP_Manager
+from mytuntap import TAP_Manager
 from scapy.all import *
 import threading
 import select
 import os
 import time
-import array
+
 
 state = 1
 temp_read = b''
