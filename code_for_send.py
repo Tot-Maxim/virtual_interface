@@ -1,3 +1,4 @@
+from scapy.all import *
 from array import array
 import fcntl
 import os
@@ -5,32 +6,29 @@ import struct
 import subprocess
 import tempfile
 import time
+import threading
+import select
+
 
 try:
     subprocess.check_call('sudo ip route delete 10.0.0.0/7 dev tap0 proto kernel scope link src 10.1.1.7', shell=True)
 except:
     pass
 
-def signal_handler(sig, frame):
-    try:
-        print('CTRL + C detected. Exiting gracefully...')
-        tun.close()
-        exit(0)
-    except:
-        pass
 
 state = 1
 temp_read = b''
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-#current_dir = '/home/tot/FilePack'
-
+#CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+CURRENT_DIR = '/home/tot/FilePack'
+packet = Ether(dst="0a:1a:de:3c:f0:5d", src="0a:1a:de:3c:f0:5d") / IP(dst="10.1.1.8", src="10.1.1.7") / ICMP(type="echo-request") / Raw(load='Check connect to VB')
 # Некоторые константы, используемые для ioctl файла устройства. Я получил их с помощью простой программы на Cи
 TUNSETIFF = 0x400454ca
 TUNSETOWNER = TUNSETIFF + 2
 IFF_TUN = 0x0001
 IFF_TAP = 0x0002
 IFF_NO_PI = 0x1000
+read_lock = threading.Lock()
 
 # Открытие файла, соответствующего устройству TUN, в двоичном режиме чтения/записи без буферизации.
 tun = open('/dev/net/tun', 'r+b', buffering=0)
@@ -111,44 +109,53 @@ def read_packet(path_dir):
 
         if index != -1:
             to_TCP = content[:index]
-            content = content[index + 3:]
+            after_content = content[index + 3:]
 
             if temp_read != to_TCP:
                 temp_read = to_TCP
                 print(bcolors.OKGREEN + f'Read_data in {path_dir}:' + bcolors.ENDC, ''.join('{:02x} '.format(x) for x in to_TCP))
-                return to_TCP
+                os.write(tun.fileno(), bytes(to_TCP))
+                return False
             else:
                 pass
             file.seek(0)
             file.truncate()
-            file.write(content)
+            file.write(after_content)
+        else:
+            return True
 
 
 while True:
     print('1', state)
     if state == 1:
-        from_TCP = array('B', os.read(tun.fileno(), 2048))
+        try:
+            read_lock.acquire()
+            timeout = time.time() + 2
+            while True:
+                readable, _, errors = select.select([tun.fileno()], [], [tun.fileno()], 0.5)
+                if tun.fileno() in readable:
+                    from_TCP = array('B', os.read(tun.fileno(), 1522))
+                    break
+                if tun.fileno() in errors:
+                    print("Error reading from tap")
+                    break
+                if time.time() > timeout:
+                    sendp(packet, iface="tap0")
+                    break
+        finally:
+            read_lock.release()
         if from_TCP:
             state = 2
-            print(bytes(from_TCP))
     print('2', state)
     if state == 2:
-        path_dir = os.path.join(current_dir, 'from_host.docx')
+        path_dir = os.path.join(CURRENT_DIR, 'from_host.docx')
         if write_packet_to_file(from_TCP, path_dir):
             state = 3
     print('3', state)
     if state == 3:
-        path_dir = os.path.join(current_dir, 'from_virtual.docx')
-        to_TCP = read_packet(path_dir)
-        if to_TCP:
-            state = 4
-        else:
+        path_dir = os.path.join(CURRENT_DIR, 'from_virtual.docx')
+        if read_packet(path_dir):
             state = 1
-    print('4', state)
-    if state == 4:
-        os.write(tun.fileno(), bytes(to_TCP))
-        state = 1
-    time.sleep(0.3)
 
 tun.close()
 

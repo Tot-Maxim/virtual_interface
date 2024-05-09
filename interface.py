@@ -118,7 +118,7 @@ file_entry.insert(0, 'logo.png')
 
 label_addr = create_label('Введите IP-адрес', 3, 1)
 address_entry = create_entry(3, 0)
-address_entry.insert(0, '10.1.1.7')
+address_entry.insert(0, '10.1.1.8')
 
 label_port = create_label('Введите порт', 4, 1)
 
