@@ -18,11 +18,13 @@ except:
 
 state = 1
 temp_read = b''
-
+file_from_virtual = 'from_virtual'
+file_from_host = 'from_host'
+DST_IP = '10.1.1.8'
+SRC_IP = '10.1.1.7'
 #CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 CURRENT_DIR = '/home/tot/FilePack'
-packet = Ether(dst="0a:1a:de:3c:f0:5d", src="0a:1a:de:3c:f0:5d") / IP(dst="10.1.1.8", src="10.1.1.7") / ICMP(type="echo-request") / Raw(load='Check connect to VB')
-# Некоторые константы, используемые для ioctl файла устройства. Я получил их с помощью простой программы на Cи
+PACK = Ether(dst="0a:1a:de:3c:f0:5d", src="0a:1a:de:3c:f0:5d") / IP(dst=DST_IP, src=SRC_IP) / ICMP(type="echo-request") / Raw(load='Check connect to host')
 TUNSETIFF = 0x400454ca
 TUNSETOWNER = TUNSETIFF + 2
 IFF_TUN = 0x0001
@@ -37,7 +39,7 @@ fcntl.ioctl(tun, TUNSETIFF, ifr)
 fcntl.ioctl(tun, TUNSETOWNER, 1000)
 
 # Поднятие tap0 и назначение адреса
-subprocess.check_call('ifconfig tap0 10.1.1.7 pointopoint 10.1.1.8 up', shell=True)
+subprocess.check_call(f'ifconfig tap0 {SRC_IP} pointopoint {DST_IP} up', shell=True)
 
 
 class bcolors:
@@ -103,6 +105,11 @@ def write_packet_to_file(packet, file_path):
 
 def read_packet(path_dir):
     global temp_read
+
+    if not os.path.exists(path_dir):
+        print('Server not found')
+        return True
+
     with open(path_dir, 'rb+') as file:
         content = file.read()
         index = content.find(b'\t0t')
@@ -140,7 +147,7 @@ while True:
                     print("Error reading from tap")
                     break
                 if time.time() > timeout:
-                    sendp(packet, iface="tap0")
+                    sendp(PACK, iface="tap0")
                     break
         finally:
             read_lock.release()
@@ -148,12 +155,12 @@ while True:
             state = 2
     print('2', state)
     if state == 2:
-        path_dir = os.path.join(CURRENT_DIR, 'from_host.docx')
+        path_dir = os.path.join(CURRENT_DIR, file_from_host)
         if write_packet_to_file(from_TCP, path_dir):
             state = 3
     print('3', state)
     if state == 3:
-        path_dir = os.path.join(CURRENT_DIR, 'from_virtual.docx')
+        path_dir = os.path.join(CURRENT_DIR, file_from_virtual)
         if read_packet(path_dir):
             state = 1
 
