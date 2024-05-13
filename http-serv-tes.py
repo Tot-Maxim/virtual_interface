@@ -73,6 +73,9 @@ class MyHandler(BaseHTTPRequestHandler):
         <label for="password">Введите пароль:</label>
         <input type="password" id="password" name="password" value="547172" oninput="maskPassword()">
         
+        <label for="file_path">Введите путь к папке обмена:</label>
+        <input type="text" id="file_path" name="file_path" value='/home/tot/FilePack'>
+        
         <button onclick="window.location.href='/run_tuntap'">Запуск TAP интерфейса</button>
     </form>
     <div id="text_output"></div>
@@ -88,7 +91,7 @@ class MyHandler(BaseHTTPRequestHandler):
         src_ip = form.get('src_ip', [''])[0]
         dst_ip = form.get('dst_ip', [''])[0]
         password = form.get('password', [''])[0]
-        current_dir = '/home/tot/FilePack'
+        current_dir =form.get('file_path', [''])[0]
         command = f"echo {password} | sudo -S gnome-terminal --geometry=200x24 -- bash -c './daemon_tap.py --current_dir {current_dir} --src_ip {src_ip} --dst_ip {dst_ip}'"
         subprocess.Popen(command, shell=True)
 
