@@ -4,7 +4,7 @@ import threading
 import argparse
 
 parser = argparse.ArgumentParser(description='TAP Manager Script')
-parser.add_argument('--current_dir', type=str, default='/home/oem/PycharmProjects/virtual_interface',
+parser.add_argument('--current_dir', type=str, default='/home/tot/FilePack',
                     help='Current directory path')
 parser.add_argument('--file_from_host', type=str, default='from_virtual', help='File from host')
 parser.add_argument('--file_from_virtual', type=str, default='from_virtual', help='File from virtual')

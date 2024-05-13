@@ -14,7 +14,7 @@ class MyHandler(BaseHTTPRequestHandler):
             self.end_headers()
             html = """
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -69,22 +69,23 @@ class MyHandler(BaseHTTPRequestHandler):
         <input type="text" id="dst_ip" name="dst_ip" value="10.1.1.8">
         
         <label for="password">Введите пароль:</label>
-        <input type="password" id="password" name="password" value="111111" oninput="maskPassword()">
+        <input type="password" id="password" name="password" oninput="maskPassword()">
         
-        <button onclick="window.location.href='/run_tuntap'">Запуск TAP интерфейса</button>
+        <button onclick="location.href='/home/run_tuntap'; return false;">Запуск TAP интерфейса</button>
     </form>
     <div id="output"></div>
 </body>
 </html>
 """
             self.wfile.write(html.encode('utf-8'))
-        elif self.path == '/run_tuntap':
+        elif self.path == '/home/run_tuntap':
             try:
-                src_ip = '10.1.1.7'
-                dst_ip = '10.1.1.8'
-                password = '111111'
+                src_ip = parse_src_ip
+                dst_ip = parese_dst_ip
+                password = parese_pass
+                current_dir = '/home/tot/FilePack'
                 command = (f"echo {password} | sudo -S gnome-terminal --geometry=200x24 -- bash -c './daemon_tap.py "
-                           f"--src_ip {src_ip} --dst_ip {dst_ip}'")
+                           f"--current_dir {current_dir} --src_ip {src_ip} --dst_ip {dst_ip}'")
                 rc = subprocess.Popen(command, shell=True)
                 self.send_response(200)
                 self.send_header('Content-type', 'text/plain')
