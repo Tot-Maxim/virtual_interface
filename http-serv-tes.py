@@ -71,14 +71,15 @@ class MyHandler(BaseHTTPRequestHandler):
         <label for="password">Введите пароль:</label>
         <input type="password" id="password" name="password" value="111111" oninput="maskPassword()">
         
-        <button onclick="window.location.href='/run_tuntap'">Запуск TAP интерфейса</button>
+       
+        <button onclick="location.href='/home/run_tuntap'; return false;">Запуск TAP интерфейса</button>
     </form>
     <div id="output"></div>
 </body>
 </html>
 """
             self.wfile.write(html.encode('utf-8'))
-        elif self.path == '/run_tuntap':
+        elif self.path == '/home/run_tuntap':
             try:
                 src_ip = '10.1.1.7'
                 dst_ip = '10.1.1.8'
