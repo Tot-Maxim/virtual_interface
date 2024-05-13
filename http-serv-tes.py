@@ -1,4 +1,5 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from urllib.parse import parse_qs
 import subprocess
 
 HOST = 'localhost'
@@ -14,7 +15,7 @@ class MyHandler(BaseHTTPRequestHandler):
             self.end_headers()
             html = """
 <!DOCTYPE html>
-<html lang="ru">
+<html lang='ru'>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -61,7 +62,8 @@ class MyHandler(BaseHTTPRequestHandler):
     </style>
 </head>
 <body>
-     <form action="/run_tuntap">
+    <h1>Text Parser</h1>
+    <form method="post">
         <label for="src_ip">Введите IP-адрес источника:</label>
         <input type="text" id="src_ip" name="src_ip" value="10.1.1.7">
         
@@ -69,32 +71,32 @@ class MyHandler(BaseHTTPRequestHandler):
         <input type="text" id="dst_ip" name="dst_ip" value="10.1.1.8">
         
         <label for="password">Введите пароль:</label>
-        <input type="password" id="password" name="password" oninput="maskPassword()">
+        <input type="password" id="password" name="password" value="547172" oninput="maskPassword()">
         
-        <button onclick="location.href='/home/run_tuntap'; return false;">Запуск TAP интерфейса</button>
+        <button onclick="window.location.href='/run_tuntap'">Запуск TAP интерфейса</button>
     </form>
-    <div id="output"></div>
+    <div id="text_output"></div>
 </body>
 </html>
 """
             self.wfile.write(html.encode('utf-8'))
-        elif self.path == '/home/run_tuntap':
-            try:
-                src_ip = parse_src_ip
-                dst_ip = parese_dst_ip
-                password = parese_pass
-                current_dir = '/home/tot/FilePack'
-                command = (f"echo {password} | sudo -S gnome-terminal --geometry=200x24 -- bash -c './daemon_tap.py "
-                           f"--current_dir {current_dir} --src_ip {src_ip} --dst_ip {dst_ip}'")
-                rc = subprocess.Popen(command, shell=True)
-                self.send_response(200)
-                self.send_header('Content-type', 'text/plain')
-                self.end_headers()
-                self.wfile.write(b'Script execution initiated!')
-            except subprocess.CalledProcessError as e:
-                self.send_error(500, 'Error running script: ' + str(e))
-        else:
-            self.send_error(404, 'Not found')
+
+    def do_POST(self):
+        content_length = int(self.headers['Content-Length'])
+        post_data = self.rfile.read(content_length).decode('utf-8')
+        form = parse_qs(post_data)
+        src_ip = form.get('src_ip', [''])[0]
+        dst_ip = form.get('dst_ip', [''])[0]
+        password = form.get('password', [''])[0]
+        current_dir = '/home/tot/FilePack'
+        command = f"echo {password} | sudo -S gnome-terminal --geometry=200x24 -- bash -c './daemon_tap.py --current_dir {current_dir} --src_ip {src_ip} --dst_ip {dst_ip}'"
+        subprocess.Popen(command, shell=True)
+
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html; charset=utf-8')
+        self.end_headers()
+        response = f'<p>TAP запущен успешно</p>'
+        self.wfile.write(response.encode('utf-8'))
 
 
 with HTTPServer((HOST, PORT), MyHandler) as server:
