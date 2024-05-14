@@ -1,5 +1,5 @@
+#!/usr/bin/env python3
 from tkinter import *
-import subprocess
 from socket import *
 from struct import pack
 import os
@@ -23,28 +23,17 @@ class ClientProtocol:
         self.socket.close()
         self.socket = None
 
-    def send_image(self, image_data):
+    def send_image(self, image_data, file_name):
         # use struct to make sure
         length = pack('>Q', len(image_data))
-
-        # sendall to make sure it blocks if there's back-pressure on the socket
         self.socket.sendall(length)
+        lenname = pack('>Q', len(file_name))
+        self.socket.sendall(lenname)
+
+        self.socket.sendall(bytes(file_name.encode()))
         self.socket.sendall(image_data)
         label.config(text="Файл успешно отправлен", fg='white')
         ack = self.socket.recv(1)
-
-
-def run_shell_script():
-    try:
-        password = password_entry.get()
-        command = f"echo {password} | sudo -S ./run.sh"
-        rc = subprocess.Popen(command, shell=True)
-        if password:
-            label.config(text="Запуск tap интерфейса", fg='white')
-        else:
-            label.config(text="Введите пароль ОС", fg='red')
-    except Exception as e:
-        label.config(text=f"Ошибка: {e}", fg='red')
 
 
 def send_file():
@@ -57,6 +46,7 @@ def send_file():
 
     current_dir = os.path.dirname(os.path.abspath(__file__))
     path_dir = os.path.join(current_dir, file_copy)
+
 
     image_data = None
     try:
@@ -78,7 +68,7 @@ def send_file():
         label_port.config(text=f'Введите TCP-порт', fg='red')
 
     cp.connect(address, int(port))
-    cp.send_image(image_data)
+    cp.send_image(image_data, file_copy)
     cp.close()
     print('Отправка завершена')
 
@@ -103,14 +93,9 @@ window.config(background='black')
 icon = PhotoImage(file='logo.png')
 window.iconphoto(True, icon)
 
-button_connect = Button(window, text="Нажмите, чтобы запустить tap", command=run_shell_script, bg='black', fg='white')
-button_connect.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
-
 button_send = Button(window, text="Нажмите, чтобы отправить файл", command=send_file, bg='black', fg='white')
-button_send.grid(row=0, column=1, padx=10, pady=10, sticky="ew")
+button_send.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
 
-create_label('Введите пароль', 1, 1)
-password_entry = create_entry(1, 0, '*')
 
 path_label = create_label('Введите имя файла', 2, 1)
 file_entry = create_entry(2, 0)
