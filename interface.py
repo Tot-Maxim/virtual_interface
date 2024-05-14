@@ -13,7 +13,7 @@ class ClientProtocol:
     def connect(self, server_ip, server_port):
         self.socket = socket(AF_INET, SOCK_STREAM)
         try:
-            self.socket.settimeout(3)
+            self.socket.settimeout(10)
             self.socket.connect((server_ip, server_port))
         except:
             label.config(text="Connection timed out", fg='red')
@@ -33,7 +33,6 @@ class ClientProtocol:
         self.socket.sendall(bytes(file_name.encode()))
         self.socket.sendall(image_data)
         label.config(text="Файл успешно отправлен", fg='white')
-        ack = self.socket.recv(1)
 
 
 def send_file():

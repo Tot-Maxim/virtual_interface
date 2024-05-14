@@ -38,20 +38,17 @@ class TAP_Manager:
 
         while True:
             try:
-                from_TCP = os.read(self.tun_in.fileno(), 1522)
+                from_TCP = os.read(self.tun_in.fileno(), 2048)
             except OSError as e:
                 print(bcolors.FAIL + f"Error writing to tap: {e}" + bcolors.ENDC)
             else:
                 with open(path_dir, 'ab+') as file:
-                    try:
-                        tap_lock.acquire()
-                        fcntl.lockf(file, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                        file.write(from_TCP)
-                        print(bcolors.OKGREEN + f'Записанные данные в {path_dir}: ' + bcolors.ENDC,
-                              ''.join('{:02x} '.format(x) for x in from_TCP))
-                    finally:
-                        fcntl.lockf(file, fcntl.LOCK_UN)
-                        tap_lock.release()
+                    tap_lock.acquire()
+                    file.write(from_TCP)
+                    tap_lock.release()
+                    print(bcolors.OKGREEN + f'Записанные данные в {path_dir}: ' + bcolors.ENDC,
+                          ''.join('{:02x} '.format(x) for x in from_TCP))
+
 
 
     def read_from_file(self, tap_lock, current_dir, file_path):
