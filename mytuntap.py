@@ -4,9 +4,6 @@ import struct
 import subprocess
 import time
 
-# Объявление глобальных переменных
-
-
 
 class bcolors:  # Класс с константами для цветовой кодировки в консоли
     OKGREEN = '\033[92m'
@@ -50,12 +47,12 @@ class TAP_Manager:
                         tap_lock.acquire()
                         fcntl.lockf(file, fcntl.LOCK_EX | fcntl.LOCK_NB)
                         file.write(from_TCP)
-                        print(bcolors.OKGREEN + 'Записанные данные в {path_dir}: ' + bcolors.ENDC,
+                        print(bcolors.OKGREEN + f'Записанные данные в {path_dir}: ' + bcolors.ENDC,
                               ''.join('{:02x} '.format(x) for x in from_TCP))
                     finally:
                         fcntl.lockf(file, fcntl.LOCK_UN)
                         tap_lock.release()
-            time.sleep(0.1)
+
 
     def read_from_file(self, tap_lock, current_dir, file_path):
         path_dir = os.path.join(current_dir, file_path)
@@ -68,7 +65,7 @@ class TAP_Manager:
 
             if content:
                 try:
-                    print(bcolors.WARNING + f'Read data from {path_dir}:' + bcolors.ENDC,
+                    print(bcolors.WARNING + f'Прочитанные данные из {path_dir}:' + bcolors.ENDC,
                           ' '.join('{:02x}'.format(x) for x in content))
                     tap_lock.acquire()
                     os.write(self.tun_in.fileno(), bytes(content))
@@ -76,4 +73,4 @@ class TAP_Manager:
                     print(bcolors.FAIL + f"Error writing to tap: {e}" + bcolors.ENDC)
                 finally:
                     tap_lock.release()
-            time.sleep(0.1)
+
