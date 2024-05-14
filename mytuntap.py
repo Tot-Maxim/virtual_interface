@@ -48,7 +48,7 @@ class TAP_Manager:
                     tap_lock.release()
                     print(bcolors.OKGREEN + f'Записанные данные в {path_dir}: ' + bcolors.ENDC,
                           ''.join('{:02x} '.format(x) for x in from_TCP))
-
+                    time.sleep(0.2)
 
 
     def read_from_file(self, tap_lock, current_dir, file_path):
@@ -70,4 +70,4 @@ class TAP_Manager:
                     print(bcolors.FAIL + f"Error writing to tap: {e}" + bcolors.ENDC)
                 finally:
                     tap_lock.release()
-
+            time.sleep(0.2)

@@ -13,7 +13,7 @@ class ClientProtocol:
     def connect(self, server_ip, server_port):
         self.socket = socket(AF_INET, SOCK_STREAM)
         try:
-            self.socket.settimeout(10)
+            self.socket.settimeout(100)
             self.socket.connect((server_ip, server_port))
         except:
             label.config(text="Connection timed out", fg='red')
