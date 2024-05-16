@@ -21,7 +21,7 @@ tun = tap_manager.tun_setup()  # Инициализация tap интерфей
 while True:
     read_tun, write_tun, _ = select.select([tun.fileno()], [tun], [])
     if tun.fileno() in read_tun:
-        tap_manager.read_from_TCP(args.current_dir, args.file_from_host)
+        tap_manager.read_from_tcp(args.current_dir, args.file_from_host)
 
     if tun in write_tun:
         tap_manager.read_from_file(args.current_dir, args.file_from_virtual)
