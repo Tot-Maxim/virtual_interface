@@ -2,7 +2,6 @@ import fcntl
 import os
 import struct
 import subprocess
-import time
 
 
 class bcolors:  # Класс с константами для цветовой кодировки в консоли
@@ -14,6 +13,7 @@ class bcolors:  # Класс с константами для цветовой �
 
 class TAP_Manager:
     def __init__(self, src_ip, dst_ip):  # Инициализируем значения переменных
+        self.tun_in = None
         self.src_ip = src_ip
         self.dst_ip = dst_ip
         self.tun_setup()
@@ -33,22 +33,18 @@ class TAP_Manager:
         subprocess.check_call(f'ifconfig tap0 {self.src_ip} pointopoint {self.dst_ip} up', shell=True)
         return self.tun_in
 
-    def read_from_TCP(self, current_dir, file_path):
+    def read_from_tcp(self, current_dir, file_path):
         path_dir = os.path.join(current_dir, file_path)
 
         try:
-            from_TCP = os.read(self.tun_in.fileno(), 2048)
+            from_tcp = os.read(self.tun_in.fileno(), 2048)
         except OSError as e:
-            print(bcolors.FAIL + f"Error writing to tap: {e}" + bcolors.ENDC)
+            print(bcolors.FAIL + f"Ошибка при записи в tap интерфейс: {e}" + bcolors.ENDC)
         else:
             with open(path_dir, 'ab+') as file:
-                # tap_lock.acquire()
-                file.write(from_TCP)
-                # tap_lock.release()
+                file.write(from_tcp)
                 print(bcolors.OKGREEN + f'Записанные данные в {path_dir}: ' + bcolors.ENDC,
-                      ''.join('{:02x} '.format(x) for x in from_TCP))
-                #time.sleep(0.2)
-
+                      ''.join('{:02x} '.format(x) for x in from_tcp))
 
     def read_from_file(self, current_dir, file_path):
         path_dir = os.path.join(current_dir, file_path)
@@ -62,10 +58,6 @@ class TAP_Manager:
             try:
                 print(bcolors.WARNING + f'Прочитанные данные из {path_dir}:' + bcolors.ENDC,
                       ' '.join('{:02x}'.format(x) for x in content))
-                # tap_lock.acquire()
                 os.write(self.tun_in.fileno(), bytes(content))
             except OSError as e:
-                print(bcolors.FAIL + f"Error writing to tap: {e}" + bcolors.ENDC)
-            # finally:
-                # tap_lock.release()
-        #time.sleep(0.2)
+                print(bcolors.FAIL + f"Ошибка при прочтении tap интерфейса: {e}" + bcolors.ENDC)
