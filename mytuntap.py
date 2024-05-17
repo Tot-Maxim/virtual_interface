@@ -4,7 +4,7 @@ import struct
 import subprocess
 
 
-class bcolors:  # Класс с константами для цветовой кодировки в консоли
+class Bcolors:  # Класс с константами для цветовой кодировки в консоли
     OKGREEN = '\033[92m'
     WARNING = '\033[93m'
     FAIL = '\033[91m'
@@ -39,11 +39,11 @@ class TAP_Manager:
         try:
             from_tcp = os.read(self.tun_in.fileno(), 2048)
         except OSError as e:
-            print(bcolors.FAIL + f"Ошибка при записи в tap интерфейс: {e}" + bcolors.ENDC)
+            print(Bcolors.FAIL + f"Ошибка при записи в tap интерфейс: {e}" + Bcolors.ENDC)
         else:
             with open(path_dir, 'ab+') as file:
                 file.write(from_tcp)
-                print(bcolors.OKGREEN + f'Записанные данные в {path_dir}: ' + bcolors.ENDC,
+                print(Bcolors.OKGREEN + f'Записанные данные в {path_dir}: ' + Bcolors.ENDC,
                       ''.join('{:02x} '.format(x) for x in from_tcp))
 
     def read_from_file(self, current_dir, file_path):
@@ -56,8 +56,8 @@ class TAP_Manager:
 
         if content:
             try:
-                print(bcolors.WARNING + f'Прочитанные данные из {path_dir}:' + bcolors.ENDC,
+                print(Bcolors.WARNING + f'Прочитанные данные из {path_dir}:' + Bcolors.ENDC,
                       ' '.join('{:02x}'.format(x) for x in content))
                 os.write(self.tun_in.fileno(), bytes(content))
             except OSError as e:
-                print(bcolors.FAIL + f"Ошибка при прочтении tap интерфейса: {e}" + bcolors.ENDC)
+                print(Bcolors.FAIL + f"Ошибка при прочтении tap интерфейса: {e}" + Bcolors.ENDC)

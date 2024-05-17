@@ -2,12 +2,11 @@
 from mytuntap import TAP_Manager
 import select
 import argparse
-import os
 
 # CURRENT_DIR_TOT = '/home/tot/FilePack'
 # CURRENT_DIR_OEM = '/home/oem/PycharmProjects/virtual_interface'
 parser = argparse.ArgumentParser(description='TAP Manager Script')
-parser.add_argument('--current_dir', type=str, default=os.getcwd(),
+parser.add_argument('--current_dir', type=str, default='/home/tot/FilePack',
                     help='Shared folder path')
 parser.add_argument('--file_from_host', type=str, default='from_host', help='Shared file from host')
 parser.add_argument('--file_from_virtual', type=str, default='from_virtual', help='Shared file from virtual')

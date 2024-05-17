@@ -91,8 +91,9 @@ class MyHandler(BaseHTTPRequestHandler):
         src_ip = form.get('src_ip', [''])[0]
         dst_ip = form.get('dst_ip', [''])[0]
         password = form.get('password', [''])[0]
-        current_dir =form.get('file_path', [''])[0]
-        command = f"echo {password} | sudo -S gnome-terminal --geometry=200x24 -- bash -c './daemon_tap.py --current_dir {current_dir} --src_ip {src_ip} --dst_ip {dst_ip}'"
+        current_dir = form.get('file_path', [''])[0]
+        command = (f"echo {password} | sudo -S gnome-terminal --geometry=200x24 -- bash -c './daemon_tap.py "
+                   f"--current_dir {current_dir} --src_ip {src_ip} --dst_ip {dst_ip}'")
         subprocess.Popen(command, shell=True)
 
         self.send_response(200)
