@@ -1,6 +1,7 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import parse_qs
 import subprocess
+import html_pages as HTML
 
 HOST = 'localhost'
 PORT = 7070
@@ -9,98 +10,58 @@ PORT = 7070
 class MyHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
+        if self.path == '/':
+            self.send_response(303)
+            self.send_header('Location', '/home')
+            self.end_headers()
+
         if self.path == '/home':
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
-            html = """
-<!DOCTYPE html>
-<html lang='ru'>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TAP interface</title>
-    <style>
-        body {
-            background-color: black;
-            margin: 0;
-            padding: 0;
-            font-family: sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
+            self.wfile.write(HTML.html_TAP.encode('utf-8'))
 
-        form {
-            display: grid;
-            gap: 10px;
-            justify-items: center;
-            margin-top: 20px;
-        }
+        if self.path == '/home/client':
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html')
+            self.end_headers()
+            self.wfile.write(HTML.html_client.encode('utf-8'))
 
-        button {
-            background-color: white;
-            color: black;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        
-        input {
-            padding: 5px;
-        }
+        if self.path == '/choose':
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html')
+            self.end_headers()
+            self.wfile.write(HTML.choose.encode('utf-8'))
 
-        label {
-            color: white;
-            text-align: right;
-            padding-right: 10px;
-            grid-column: 1 / 2;
-        }
-    </style>
-</head>
-<body>
-    <h1>Text Parser</h1>
-    <form method="post">
-        <label for="src_ip">Введите IP-адрес источника:</label>
-        <input type="text" id="src_ip" name="src_ip" value="10.1.1.7">
-        
-        <label for="dst_ip">Введите IP-адрес назначения:</label>
-        <input type="text" id="dst_ip" name="dst_ip" value="10.1.1.8">
-        
-        <label for="password">Введите пароль:</label>
-        <input type="password" id="password" name="password" value="547172" oninput="maskPassword()">
-        
-        <label for="file_path">Введите путь к папке обмена:</label>
-        <input type="text" id="file_path" name="file_path" value='/home/tot/FilePack'>
-        
-        <button onclick="window.location.href='/run_tuntap'">Запуск TAP интерфейса</button>
-    </form>
-    <div id="text_output"></div>
-</body>
-</html>
-"""
-            self.wfile.write(html.encode('utf-8'))
+        if self.path == '/home/server':
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html')
+            self.end_headers()
+            self.wfile.write(HTML.server.encode('utf-8'))
 
     def do_POST(self):
-        content_length = int(self.headers['Content-Length'])
-        post_data = self.rfile.read(content_length).decode('utf-8')
-        form = parse_qs(post_data)
-        src_ip = form.get('src_ip', [''])[0]
-        dst_ip = form.get('dst_ip', [''])[0]
-        password = form.get('password', [''])[0]
-        current_dir = form.get('file_path', [''])[0]
-        command = (f"echo {password} | sudo -S gnome-terminal --geometry=200x24 -- bash -c './daemon_tap.py "
-                   f"--current_dir {current_dir} --src_ip {src_ip} --dst_ip {dst_ip}'")
-        subprocess.Popen(command, shell=True)
+        print('Here')
+        if self.path == '/home':
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length).decode('utf-8')
+            form = parse_qs(post_data)
+            src_ip = form.get('src_ip', [''])[0]
+            dst_ip = form.get('dst_ip', [''])[0]
+            password = form.get('password', [''])[0]
+            current_dir = form.get('file_path', [''])[0]
+            command = (f"echo {password} | sudo -S gnome-terminal --geometry=200x24 -- bash -c './daemon_tap.py "
+                       f"--current_dir {current_dir} --src_ip {src_ip} --dst_ip {dst_ip}'")
+            subprocess.Popen(command, shell=True)
 
-        self.send_response(200)
-        self.send_header('Content-type', 'text/html; charset=utf-8')
-        self.end_headers()
-        response = f'<p>TAP запущен успешно</p>'
-        self.wfile.write(response.encode('utf-8'))
+            self.send_response(303)
+            self.send_header('Location', '/choose')
+            self.end_headers()
+            print('And')
+        elif self.path == '/home/server':
+            print('Server')
+        elif self.path == '/home/client':
+            print('Client')
+
 
 
 with HTTPServer((HOST, PORT), MyHandler) as server:
