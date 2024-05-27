@@ -1,7 +1,8 @@
+#!/usr/bin/env python3
 import serial
 import time
 
-port_write = '/dev/ttyACM1'
+port_write = '/dev/ttyACM0'
 
 baud_rate = 115200  # Specify the baud rate
 
@@ -9,7 +10,7 @@ ser_wrtie = serial.Serial(port_write, baud_rate)
 
 data_to_send = b''
 
-for i in range(64):
+for i in range(3):
     data_to_send += bytes([i])
 
 try:

@@ -1,10 +1,9 @@
-import time
+#!/usr/bin/env python3
 import serial
 
-port_read = '/dev/ttyACM2'  # Specify the correct serial port name
 
+port_read = '/dev/ttyACM0'  # Specify the correct serial port name
 baud_rate = 115200  # Specify the baud rate
-
 ser_read = serial.Serial(port_read, baud_rate)
 
 try:
