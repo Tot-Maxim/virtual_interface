@@ -8,9 +8,8 @@ led = Pin(25, Pin.OUT)
 
 while True:
     try:
-        readable, _, _ = select.select([uart, stdin], [], [])
         led.value(0)
-        time.sleep(0.01)
+        readable, _, _ = select.select([uart, stdin], [], [])
 
         if uart in readable:
             led.value(1)

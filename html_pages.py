@@ -1,4 +1,3 @@
-
 html_TAP = """
 <!DOCTYPE html>
 <html lang='ru'>
@@ -69,7 +68,7 @@ html_TAP = """
 </html>
 """
 
-html_client = """
+socket_client = """
 <!DOCTYPE html>
 <html lang='ru'>
 <head>
@@ -121,17 +120,23 @@ html_client = """
     <h1>Text Parser</h1>
     <form method="post">
         <label for="dst_ip">Введите IP-адрес сервера:</label>
-        <input type="text" id="dst_ip" name="dst_ip" value="10.1.1.8">
+        <input type="text" id="client_ip" name="client_ip" value="10.1.1.8">
 
         <label for="port">Введите порт сервера:</label>
-        <input type="number" id="port" name="port" value=5050>
+        <input type="number" id="client_port" name="client_port" value=5050>
 
         <label for="file_path">Введите имя файла для передачи:</label>
         <input type="text" id="file_path" name="file_path" value='logo.png'>
 
-        <button onclick="window.location.href='/run_tuntap'">Передать файл</button>
+         <button onclick="redirect_client()">Передать файл</button>
     </form>
     <div id="text_output"></div>
+    <script>
+        function redirect_client() {
+            window.location.href = '/choose';
+        }
+    </script>
+    
 </body>
 </html>
 """
@@ -200,7 +205,7 @@ choose = '''
 </html>
 '''
 
-server = '''
+socket_server = '''
 <!DOCTYPE html>
 <html lang='ru'>
 <head>
@@ -249,46 +254,24 @@ server = '''
     </style>
 </head>
 <body>
+    <div>
     <h1>Server receive</h1>
-    <form method="post">
-        <label for="src_ip">Введите IP-адрес источника:</label>
-        <input type="text" id="src_ip" name="src_ip" value="10.1.1.7">
+    <form>
+        <label for="dst_ip">Введите IP-адрес сервера:</label>
+        <input type="text" id="socket_ip" name="socket_ip" value="10.1.1.8">
         
-        <label for="dst_ip">Введите IP-адрес назначения:</label>
-        <input type="text" id="dst_ip" name="dst_ip" value="10.1.1.8">
-        
-        <label for="password">Введите пароль:</label>
-        <input type="password" id="password" name="password" value="547172" oninput="maskPassword()">
-        
-        <label for="file_path">Введите путь к папке обмена:</label>
-        <input type="text" id="file_path" name="file_path" value='/home/tot/FilePack'>
-        
-        <button onclick="window.location.href='/run_tuntap'">Запуск TAP интерфейса</button>
+        <label for="dst_ip">Введите порт сервера:</label>
+        <input type="number" id="socket_port" name="socket_port" value=5050>
     </form>
     
-    <progress id="progress-bar" value="{self.progress}" max="10"></progress>
-    <br><br>
-    <button id="btn">Click me</button>
+    <button onclick="redirect_start()">Запуск ceрвера</button>
     
-    <div id="text_output"></div>
+    </div>
     <script>
-        var btn = document.getElementById('btn');
-        var progressBar = document.getElementById('progress-bar');
-
-        btn.addEventListener('click', function() {{
-            fetch('/update_progress')
-                .then(response => response.json())
-                .then(data => {{
-                    progressBar.value = data.progress;
-                    if (data.progress === 10) {{
-                        setTimeout(function() {{
-                            progressBar.value = 0;
-                        }}, 1000);
-                    }}
-                }});
-        }});
+        function redirect_start() {
+            window.location.href = '/choose';
+        }
     </script>
-    
 </body>
 </html>
 '''

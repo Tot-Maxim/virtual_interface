@@ -1,5 +1,4 @@
 import serial
-import time
 
 size = 0
 data_to_send = bytearray()
