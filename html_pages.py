@@ -76,6 +76,16 @@ socket_client = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TAP interface</title>
     <style>
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #5399A7;
+            padding: 10px;
+            color: white;
+            text-align: left;
+        }
         body {
             background-color: black;
             margin: 0;
@@ -117,7 +127,10 @@ socket_client = """
     </style>
 </head>
 <body>
-    <h1>Text Parser</h1>
+    <div class="top-bar">   
+        <button onclick="redirect_choose()">Вернуться назад</button>
+    </div>
+    <h1>Socket client</h1>
     <form method="post">
         <label for="dst_ip">Введите IP-адрес сервера:</label>
         <input type="text" id="client_ip" name="client_ip" value="10.1.1.8">
@@ -128,15 +141,14 @@ socket_client = """
         <label for="file_path">Введите имя файла для передачи:</label>
         <input type="text" id="file_path" name="file_path" value='logo.png'>
 
-         <button onclick="redirect_client()">Передать файл</button>
+        <button onclick="window.location.href='/home/client/run_tuntap'">Передать файл</button>
     </form>
-    <div id="text_output"></div>
+    <div id="text_output"> HERERERE</div>
     <script>
-        function redirect_client() {
+        function redirect_choose() {
             window.location.href = '/choose';
         }
     </script>
-    
 </body>
 </html>
 """
@@ -254,26 +266,59 @@ socket_server = '''
     </style>
 </head>
 <body>
-    <div>
-    <h1>Server receive</h1>
-    <form>
+    <h1>Socket server</h1>
+    <form method="post">
         <label for="dst_ip">Введите IP-адрес сервера:</label>
         <input type="text" id="socket_ip" name="socket_ip" value="10.1.1.8">
-        
+
         <label for="dst_ip">Введите порт сервера:</label>
         <input type="number" id="socket_port" name="socket_port" value=5050>
+
+        <label for="file_path">Введите путь к папке обмена:</label>
+        <input type="text" id="file_path" name="file_path" value='/home/tot/FilePack'>
+
+        <button onclick="window.location.href='/home/server/run_tuntap'">Запуск ceрвера</button>
     </form>
-    
-    <button onclick="redirect_start()">Запуск ceрвера</button>
-    
-    </div>
-    <script>
-        function redirect_start() {
-            window.location.href = '/choose';
-        }
-    </script>
+    <div id="text_output"></div>
 </body>
 </html>
 '''
 
-
+server_start = '''
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Server Status</title>
+  <style>
+    body {
+      background-color: #f0f0f0;
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    
+    h1 {
+      color: black;
+      font-size: 3rem;
+    }
+    
+    form {
+            display: grid;
+            gap: 10px;
+            justify-items: center;
+            margin-top: 20px;
+        }
+  </style>
+</head>
+<body>
+    <form>
+        <h1>Server is start</h1>
+        <progress id="progress-bar" value="{self.progress}" max="10"></progress>
+    </form>
+</body>
+</html>
+'''

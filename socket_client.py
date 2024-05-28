@@ -6,7 +6,7 @@ import argparse
 
 parser = argparse.ArgumentParser(description='Client socket manager script')
 parser.add_argument('--port', type=int, default=5050, help='TCP port')
-parser.add_argument('--ip', type=str, default='10.1.1.7', help='TCP ip address for client')
+parser.add_argument('--ip', type=str, default='10.1.1.8', help='TCP ip address for client')
 parser.add_argument('--file', type=str, default='logo.png', help='File Name for send')
 args = parser.parse_args()
 
@@ -41,9 +41,8 @@ class ClientProtocol:
         print('Файл успешно отправлен')
 
 
-def send_file():
+def send_file(file_copy: str, address: str, port: int):
     cp = ClientProtocol()
-    file_copy = args.file
     if file_copy:
         print(f'Отправка файла {file_copy}')
     else:
@@ -61,8 +60,6 @@ def send_file():
     except:
         print('Файл не найден')
 
-    address = args.ip
-    port = args.port
     if address:
         print(f'Ip-адрес: {address}')
     else:
@@ -78,5 +75,5 @@ def send_file():
     print('Отправка завершена')
 
 
-
-
+if __name__ == '__main__':
+    send_file(args.file, args.ip, args.port)

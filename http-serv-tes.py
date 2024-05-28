@@ -40,6 +40,17 @@ class MyHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(HTML.socket_server.encode('utf-8'))
 
+        if self.path == '/home/server/start':
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html')
+            self.end_headers()
+            self.wfile.write(HTML.server_start.encode('utf-8'))
+
+        else:
+            self.send_response_only(404)
+            self.end_headers()
+            self.wfile.write(b'Not Found')
+
     def do_POST(self):
 
         if self.path == '/home':
@@ -66,7 +77,10 @@ class MyHandler(BaseHTTPRequestHandler):
             socket_port = form.get('socket_port', [''])[0]
             command = (f"gnome-terminal --geometry=100x24 -- bash -c './socket_server.py --ip {socket_ip} --port {socket_port}'")
             subprocess.Popen(command, shell=True)
-            print(f'socket_ip: {socket_ip}')
+
+            self.send_response(303)
+            self.send_header('Location', '/home/server/start')
+            self.end_headers()
 
         elif self.path == '/home/client':
             content_length = int(self.headers['Content-Length'])
@@ -76,10 +90,13 @@ class MyHandler(BaseHTTPRequestHandler):
             client_port = form.get('client_port', [''])[0]
             file_path = form.get('file_path', [''])[0]
             command = (
-                f"gnome-terminal --geometry=100x24 -- bash -c './socket_client.py --ip {client_ip} --port {client_port} --file{file_path}'")
-            subprocess.Popen(command, shell=True)
-            print(f'file: {file}')
+                f"./socket_client.py --ip {client_ip} --port {client_port} --file{file_path}")
+            subprocess.Popen(command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
+            print('HERE')
+            self.send_response(303)
+            self.send_header('Location', '/home/client')
+            self.end_headers()
 
 
 with HTTPServer((HOST, PORT), MyHandler) as server:
