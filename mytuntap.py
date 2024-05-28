@@ -2,6 +2,10 @@ import fcntl
 import os
 import struct
 import subprocess
+import serial
+
+#port_read = '/dev/ttyACM0'  # Specify the correct serial port name
+baud_rate = 115200  # Specify the baud rate
 
 
 class Bcolors:  # Класс с константами для цветовой кодировки в консоли
@@ -12,10 +16,11 @@ class Bcolors:  # Класс с константами для цветовой �
 
 
 class TAP_Manager:
-    def __init__(self, src_ip, dst_ip):  # Инициализируем значения переменных
+    def __init__(self, src_ip, dst_ip, port_read):  # Инициализируем значения переменных
         self.tun_in = None
         self.src_ip = src_ip
         self.dst_ip = dst_ip
+        self.serial_port = port_read
         self.tun_setup()
 
     def tun_setup(self):
@@ -33,31 +38,40 @@ class TAP_Manager:
         subprocess.check_call(f'ifconfig tap0 {self.src_ip} pointopoint {self.dst_ip} up', shell=True)
         return self.tun_in
 
-    def read_from_tcp(self, current_dir, file_path):
-        path_dir = os.path.join(current_dir, file_path)
-
+    def read_from_tcp(self):
         try:
             from_tcp = os.read(self.tun_in.fileno(), 2048)
         except OSError as e:
             print(Bcolors.FAIL + f"Ошибка при записи в tap интерфейс: {e}" + Bcolors.ENDC)
         else:
-            with open(path_dir, 'ab+') as file:
-                file.write(from_tcp)
-                print(Bcolors.OKGREEN + f'Записанные данные в {path_dir}: ' + Bcolors.ENDC,
-                      ''.join('{:02x} '.format(x) for x in from_tcp))
+            ser_write = serial.Serial(self.serial_port, baud_rate)
+            data = ser_write.write(from_tcp)
+            print(f'Write {data} to {self.serial_port}')
+            ser_write.close()
 
-    def read_from_file(self, current_dir, file_path):
-        path_dir = os.path.join(current_dir, file_path)
 
-        with open(path_dir, 'rb+') as file:
-            content = file.read()
 
-            if content:
+    def read_from_serial(self):
+        ser_read = serial.Serial(self.serial_port, baud_rate)
+
+        try:
+            print("Reading data stream...")
+            while True:
+                if ser_read.in_waiting == 0:
+                    continue
+                content = ser_read.read(ser_read.in_waiting)
                 try:
-                    print(Bcolors.WARNING + f'Прочитанные данные из {path_dir}:' + Bcolors.ENDC,
+                    print(Bcolors.WARNING + f'Прочитанные данные из {self.serial_port}:' + Bcolors.ENDC,
                           ' '.join('{:02x}'.format(x) for x in content))
                     os.write(self.tun_in.fileno(), bytes(content))
-                    file.seek(0)
-                    file.truncate()
                 except OSError as e:
                     print(Bcolors.FAIL + f"Ошибка при прочтении tap интерфейса: {e}" + Bcolors.ENDC)
+
+        except KeyboardInterrupt:
+            ser_read.close()
+            print('Serial port is closed')
+
+        except Exception as e:
+            print(f"Error: {e}")
+
+

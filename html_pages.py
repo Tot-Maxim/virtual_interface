@@ -58,8 +58,8 @@ html_TAP = """
         <label for="password">Введите пароль:</label>
         <input type="password" id="password" name="password" value="547172" oninput="maskPassword()">
 
-        <label for="file_path">Введите путь к папке обмена:</label>
-        <input type="text" id="file_path" name="file_path" value='/home/tot/FilePack'>
+        <label for="file_path">Введите последовательный порт:</label>
+        <input type="text" id="file_path" name="file_path" value='/dev/ttyACM0'>
 
         <button onclick="window.location.href='/home/serv/run_tuntap'">Запуск TAP интерфейса</button>
     </form>

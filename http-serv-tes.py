@@ -89,11 +89,9 @@ class MyHandler(BaseHTTPRequestHandler):
             client_ip = form.get('client_ip', [''])[0]
             client_port = form.get('client_port', [''])[0]
             file_path = form.get('file_path', [''])[0]
-            command = (
-                f"./socket_client.py --ip {client_ip} --port {client_port} --file{file_path}")
-            subprocess.Popen(command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            command = f"./socket_client.py --ip {client_ip} --port {client_port} --file {file_path}"
+            subprocess.Popen(command, shell=True)
 
-            print('HERE')
             self.send_response(303)
             self.send_header('Location', '/home/client')
             self.end_headers()

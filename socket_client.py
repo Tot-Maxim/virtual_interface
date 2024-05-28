@@ -43,14 +43,11 @@ class ClientProtocol:
 
 def send_file(file_copy: str, address: str, port: int):
     cp = ClientProtocol()
-    if file_copy:
-        print(f'Отправка файла {file_copy}')
-    else:
-        print('Введите имя файла')
 
     current_dir = os.path.dirname(os.path.abspath(__file__))
     path_dir = os.path.join(current_dir, file_copy)
-
+    if file_copy:
+        print(f'Отправка файла {path_dir}')
 
     image_data = None
     try:
