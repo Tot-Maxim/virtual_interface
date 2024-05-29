@@ -50,14 +50,12 @@ class TAP_Manager:
 
     def read_from_serial(self):
         try:
-            content = b''
             with serial.Serial(self.serial_port, self.baud_rate, timeout=1) as ser_read:
-                while ser_read.in_waiting > 0:
-                    content += ser_read.read(ser_read.in_waiting)
+                len_rx = ser_read.in_waiting
+                content = ser_read.read(len_rx)
 
                 print(Bcolors.WARNING + f'Прочитанные данные из {self.serial_port}:' + Bcolors.ENDC,
                       ' '.join('{:02x}'.format(x) for x in content))
                 os.write(self.tun_in.fileno(), bytes(content))
         except Exception as e:
-            pass
-            #print(f"An error occurred: {e}")
+            print(f"An error occurred: {e}")

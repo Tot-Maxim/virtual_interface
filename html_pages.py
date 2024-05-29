@@ -6,8 +6,18 @@ html_TAP = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TAP interface</title>
     <style>
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #5399A7;
+            padding: 10px;
+            color: white;
+            text-align: left;
+        }
         body {
-            background-color: black;
+            background: url('back.png'), #6DB3F2;
             margin: 0;
             padding: 0;
             font-family: sans-serif;
@@ -15,15 +25,27 @@ html_TAP = """
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            
+            /* Add background image property */
+            background-repeat: no-repeat;  /* Prevent image tiling */
+            background-position: center;  /* Center the image */
+            background-size: cover;  /* Resize image to cover the entire body element */
         }
 
         form {
             display: grid;
-            gap: 10px;
-            justify-items: center;
+            gap: 30px;
+            justify-items: left;
             margin-top: 20px;
         }
-
+        
+        form_input {
+            display: grid;
+            gap: 20px;
+            justify-items: center;
+            margin-top: -50px;
+        }
+        
         button {
             background-color: white;
             color: black;
@@ -47,22 +69,22 @@ html_TAP = """
     </style>
 </head>
 <body>
-    <h1>Text Parser</h1>
+    <div class="top-bar">
+        <h1 style="color: white;">TAP Manager</h1>
+    </div>
     <form method="post">
         <label for="src_ip">Введите IP-адрес источника:</label>
-        <input type="text" id="src_ip" name="src_ip" value="10.1.1.7">
-
         <label for="dst_ip">Введите IP-адрес назначения:</label>
-        <input type="text" id="dst_ip" name="dst_ip" value="10.1.1.8">
-
         <label for="password">Введите пароль:</label>
-        <input type="password" id="password" name="password" value="547172" oninput="maskPassword()">
-
         <label for="file_path">Введите последовательный порт:</label>
-        <input type="text" id="file_path" name="file_path" value='/dev/ttyACM0'>
-
-        <button onclick="window.location.href='/home/serv/run_tuntap'">Запуск TAP интерфейса</button>
+        <button onclick="window.location.href='/choose'">Запуск TAP интерфейса</button>
     </form>
+    <form_input method="post">
+        <input type="text" id="src_ip" name="src_ip" value="10.1.1.7">
+        <input type="text" id="dst_ip" name="dst_ip" value="10.1.1.8">
+        <input type="password" id="password" name="password" value="547172" oninput="maskPassword()">
+        <input type="text" id="file_path" name="file_path" value='/dev/ttyACM0'>
+    </form_input>
     <div id="text_output"></div>
 </body>
 </html>
