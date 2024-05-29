@@ -4,9 +4,6 @@ import struct
 import subprocess
 import serial
 
-#port_read = '/dev/ttyACM0'  # Specify the correct serial port name
-baud_rate = 115200  # Specify the baud rate
-
 
 class Bcolors:  # Класс с константами для цветовой кодировки в консоли
     OKGREEN = '\033[92m'
@@ -16,11 +13,12 @@ class Bcolors:  # Класс с константами для цветовой �
 
 
 class TAP_Manager:
-    def __init__(self, src_ip, dst_ip, port_read):  # Инициализируем значения переменных
+    def __init__(self, src_ip, dst_ip, port_read, baud_rate):  # Инициализируем значения переменных
         self.tun_in = None
         self.src_ip = src_ip
         self.dst_ip = dst_ip
         self.serial_port = port_read
+        self.baud_rate = baud_rate
         self.tun_setup()
 
     def tun_setup(self):
@@ -44,34 +42,22 @@ class TAP_Manager:
         except OSError as e:
             print(Bcolors.FAIL + f"Ошибка при записи в tap интерфейс: {e}" + Bcolors.ENDC)
         else:
-            ser_write = serial.Serial(self.serial_port, baud_rate)
-            data = ser_write.write(from_tcp)
-            print(f'Write {data} to {self.serial_port}')
+            ser_write = serial.Serial(self.serial_port, self.baud_rate)
+            ser_write.write(from_tcp)
+            print(Bcolors.OKGREEN + f'Записанные данные в {self.serial_port}:' + Bcolors.ENDC,
+                  ' '.join('{:02x}'.format(x) for x in from_tcp))
             ser_write.close()
 
-
-
     def read_from_serial(self):
-        ser_read = serial.Serial(self.serial_port, baud_rate)
-
         try:
-            print("Reading data stream...")
-            while True:
-                if ser_read.in_waiting == 0:
-                    continue
-                content = ser_read.read(ser_read.in_waiting)
-                try:
-                    print(Bcolors.WARNING + f'Прочитанные данные из {self.serial_port}:' + Bcolors.ENDC,
-                          ' '.join('{:02x}'.format(x) for x in content))
-                    os.write(self.tun_in.fileno(), bytes(content))
-                except OSError as e:
-                    print(Bcolors.FAIL + f"Ошибка при прочтении tap интерфейса: {e}" + Bcolors.ENDC)
+            content = b''
+            with serial.Serial(self.serial_port, self.baud_rate, timeout=1) as ser_read:
+                while ser_read.in_waiting > 0:
+                    content += ser_read.read(ser_read.in_waiting)
 
-        except KeyboardInterrupt:
-            ser_read.close()
-            print('Serial port is closed')
-
+                print(Bcolors.WARNING + f'Прочитанные данные из {self.serial_port}:' + Bcolors.ENDC,
+                      ' '.join('{:02x}'.format(x) for x in content))
+                os.write(self.tun_in.fileno(), bytes(content))
         except Exception as e:
-            print(f"Error: {e}")
-
-
+            pass
+            #print(f"An error occurred: {e}")
