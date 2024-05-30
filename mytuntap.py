@@ -3,7 +3,7 @@ import os
 import struct
 import subprocess
 import serial
-import base64
+from base64 import b64decode, b64encode
 import time
 
 
@@ -54,7 +54,6 @@ class TAP_Manager:
     def read_from_tcp(self):
         try:
             from_tcp = os.read(self.tun_in.fileno(), 2048)
-            print(Bcolors.WARNING + 'len_tcp:' + Bcolors.ENDC, len(from_tcp))
             return from_tcp
         except OSError as e:
             print(Bcolors.FAIL + f"Ошибка при записи в tap интерфейс: {e}" + Bcolors.ENDC)
@@ -63,8 +62,7 @@ class TAP_Manager:
         try:
             len_rx = self.ser.in_waiting
             data_rx = self.ser.read(len_rx)
-            receive_base64 = base64.b64decode(add_padding(data_rx))
-            print('len_rx:', len_rx)
+            receive_base64 = b64decode(add_padding(data_rx))
             return receive_base64
         except Exception as e:
             print(Bcolors.FAIL + f"Ошибка при попытке прочитать из {self.serial_port}: {e}" + Bcolors.ENDC)
@@ -76,7 +74,7 @@ class TAP_Manager:
 
     def write_to_uart(self, data_from_tcp):
         try:
-            send_base64 = base64.b64encode(data_from_tcp)
+            send_base64 = b64encode(data_from_tcp)
             len_tx = self.ser.write(send_base64)
             ts = (10 / self.baud_rate) * (len_tx + 100) * 10
             time.sleep(ts)

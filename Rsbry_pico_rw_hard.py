@@ -31,6 +31,7 @@ while True:
                 led.value(1)
                 uart.write(buffer_stdin)
                 buffer_stdin = bytearray()
+
         elif fd == stdout:
             if buffer_uart:
                 led.value(1)
