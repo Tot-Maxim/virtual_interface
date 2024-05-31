@@ -34,16 +34,16 @@ html_TAP = """
 
         form {
             display: grid;
-            gap: 30px;
-            justify-items: left;
-            margin-top: 20px;
+            gap: 20px;
+            justify-items: center;
+            margin-top: 40px;
         }
         
         form_input {
             display: grid;
-            gap: 20px;
-            justify-items: center;
-            margin-top: -50px;
+            gap: 30px;
+            justify-items: left;
+            margin-top: -20px;
         }
         
         button {
@@ -72,19 +72,19 @@ html_TAP = """
     <div class="top-bar">
         <h1 style="color: white;">TAP Manager</h1>
     </div>
-    <form method="post">
+    <form_input>
         <label for="src_ip">Введите IP-адрес источника:</label>
         <label for="dst_ip">Введите IP-адрес назначения:</label>
         <label for="password">Введите пароль:</label>
-        <label for="file_path">Введите последовательный порт:</label>
-        <button onclick="window.location.href='/choose'">Запуск TAP интерфейса</button>
-    </form>
-    <form_input method="post">
+        <label for="serial_port">Введите последовательный порт:</label>
+    </form_input>
+    <form method="post">
         <input type="text" id="src_ip" name="src_ip" value="10.1.1.7">
         <input type="text" id="dst_ip" name="dst_ip" value="10.1.1.8">
-        <input type="password" id="password" name="password" value="547172" oninput="maskPassword()">
-        <input type="text" id="file_path" name="file_path" value='/dev/ttyACM0'>
-    </form_input>
+        <input type="password" id="password" name="password" value="547172">
+        <input type="text" id="serial_port" name="serial_port" value='/dev/ttyACM0'>
+        <button onclick="window.location.href='/choose'">Запуск TAP интерфейса</button>
+    </form>
     <div id="text_output"></div>
 </body>
 </html>

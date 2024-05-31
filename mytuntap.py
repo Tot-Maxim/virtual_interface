@@ -54,6 +54,7 @@ class TAP_Manager:
     def read_from_tcp(self):
         try:
             from_tcp = os.read(self.tun_in.fileno(), 2048)
+            print(Bcolors.WARNING + 'len_tcp:' + Bcolors.ENDC, len(from_tcp))
             return from_tcp
         except OSError as e:
             print(Bcolors.FAIL + f"Ошибка при записи в tap интерфейс: {e}" + Bcolors.ENDC)
