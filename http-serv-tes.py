@@ -46,7 +46,6 @@ class MyHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(HTML.server_start.encode('utf-8'))
 
-
     def do_POST(self):
 
         if self.path == '/home':
@@ -56,19 +55,16 @@ class MyHandler(BaseHTTPRequestHandler):
             src_ip = form.get('src_ip', [''])[0]
             dst_ip = form.get('dst_ip', [''])[0]
             password = form.get('password', [''])[0]
-            current_dir = form.get('file_path', [''])[0]
-            command = (f"echo {password} | sudo -S gnome-terminal --geometry=200x24 -- bash -c './daemon_tap.py "
-                       f"--current_dir {current_dir} --src_ip {src_ip} --dst_ip {dst_ip}'")
-            try:
-                subprocess.run(command, check=True)
-            except subprocess.CalledProcessError as e:
-                self.send_response(500)  # Internal Server Error
-                self.send_header('Content-Type', 'text/plain')
-                self.end_headers()
-                self.wfile.write(f'Error running daemon_tap.py: {e}'.encode('utf-8'))
-                return
+            serial_port = form.get('serial_port', [''])[0]
+            command = (f"echo {password} | sudo -S gnome-terminal --geometry=200x24 -- bash -c './daemon_tap.py'")
+                    # f" --serial_port {serial_port} --src_ip {src_ip} --dst_ip {dst_ip}'")
+            subprocess.run(command, check=True)
+            # self.send_response(500)  # Internal Server Error
+            # self.send_header('Content-Type', 'text/plain')
+            # self.end_headers()
+            # self.wfile.write(f'Error running daemon_tap.py: {e}'.encode('utf-8'))
 
-                # Redirect based on return code (consider a success response)
+            # Redirect based on return code (consider a success response)
             self.send_response(303)  # See if another redirect is appropriate
             self.send_header('Location', '/choose')
             self.end_headers()

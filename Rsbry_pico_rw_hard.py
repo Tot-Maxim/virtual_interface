@@ -4,35 +4,36 @@ from machine import UART, Pin
 
 uart = UART(0, baudrate=115200, tx=Pin(0), rx=Pin(1))
 led = Pin(25, Pin.OUT)
+p = select.poll()
+p.register(uart, select.POLLIN | select.POLLOUT)
+p.register(stdin, select.POLLIN)
+p.register(stdout, select.POLLOUT)
 
+buffer_std = bytearray()
 buffer_uart = bytearray()
-buffer_stdin = bytearray()
 
 while True:
-    led.value(0)
-    readable, writable, _ = select.select([uart, stdin], [uart, stdout], [])
-
-    for fd in readable:
+    events = p.poll()
+    for fd, event in events:
         if fd == uart:
-            b = uart.read(1)
-            if b:
-                led.value(0)
-                buffer_uart.append(ord(b))
+            if event & select.POLLIN:
+                b = ord(uart.read(1))
+                buffer_uart.append(b)
 
-        elif fd == stdin:
-            b = stdin.buffer.read(1)
-            if b:
-                led.value(0)
-                buffer_stdin.append(ord(b))
+            if event & select.POLLOUT:
+                if buffer_std:
+                    uart.write(buffer_std)
+                    buffer_std = bytearray()
 
-    for fd in writable:
-        if fd == uart:
-            if buffer_stdin:
+        if fd == stdin:
+            if event & select.POLLIN:
                 led.value(1)
-                uart.write(buffer_stdin)
-                buffer_stdin = bytearray()
-        elif fd == stdout:
-            if buffer_uart:
-                led.value(1)
-                stdout.buffer.write(buffer_uart)
-                buffer_uart = bytearray()
+                b = ord(stdin.buffer.read(1))
+                buffer_std.append(b)
+
+        if fd == stdout:
+            if event & select.POLLOUT:
+                if buffer_uart:
+                    led.value(0)
+                    stdout.buffer.write(buffer_uart)
+                    buffer_uart = bytearray()

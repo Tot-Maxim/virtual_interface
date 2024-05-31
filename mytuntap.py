@@ -54,7 +54,6 @@ class TAP_Manager:
     def read_from_tcp(self):
         try:
             from_tcp = os.read(self.tun_in.fileno(), 2048)
-            print(Bcolors.WARNING + 'len_tcp:' + Bcolors.ENDC, len(from_tcp))
             return from_tcp
         except OSError as e:
             print(Bcolors.FAIL + f"Ошибка при записи в tap интерфейс: {e}" + Bcolors.ENDC)
@@ -64,7 +63,6 @@ class TAP_Manager:
             len_rx = self.ser.in_waiting
             data_rx = self.ser.read(len_rx)
             receive_base64 = base64.b64decode(add_padding(data_rx))
-            print('len_rx:', len_rx)
             return receive_base64
         except Exception as e:
             print(Bcolors.FAIL + f"Ошибка при попытке прочитать из {self.serial_port}: {e}" + Bcolors.ENDC)
