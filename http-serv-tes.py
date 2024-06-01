@@ -61,11 +61,16 @@ class MyHandler(BaseHTTPRequestHandler):
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length).decode('utf-8')
             form = parse_qs(post_data)
+            client_ip = form.get('client_ip', [''])[0]
+            client_port = form.get('client_port', [''])[0]
+            file_path = form.get('file_path', [''])[0]
+            form = parse_qs(post_data)
             socket_ip = form.get('socket_ip', [''])[0]
             socket_port = form.get('socket_port', [''])[0]
-            print(socket_ip)
-            command = (f"gnome-terminal --geometry=200x24 -- bash -c './socket_server.py --ip {socket_ip} --port {socket_port}'")
+            command = f"./socket_client.py --ip {client_ip} --port {client_port} --file {file_path}"
             subprocess.Popen(command, shell=True)
+            # command = (f"gnome-terminal --geometry=200x24 -- bash -c './socket_server.py --ip {socket_ip} --port {socket_port}'")
+            # subprocess.Popen(command, shell=True)
 
             self.send_response(303)
             self.send_header('Location', '/home/server/start')
