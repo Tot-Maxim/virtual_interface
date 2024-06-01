@@ -3,8 +3,6 @@ from mytuntap import TAP_Manager
 import select
 import argparse
 
-# CURRENT_DIR_TOT = '/home/tot/FilePack'
-# CURRENT_DIR_OEM = '/home/oem/PycharmProjects/virtual_interface'
 parser = argparse.ArgumentParser(description='TAP Manager Script')
 parser.add_argument('--serial_port', type=str, default='/dev/ttyACM0', help='Serial port to pico')
 parser.add_argument('--baud_rate', type=int, default=115200, help='baud_rate for serial port')
