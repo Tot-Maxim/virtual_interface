@@ -2,7 +2,7 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import parse_qs
 import subprocess
-from http_file import html_pages as HTML
+import html_pages as html
 
 HOST = 'localhost'
 PORT = 7070
@@ -19,25 +19,25 @@ class MyHandler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
-            self.wfile.write(HTML.html_TAP.encode('utf-8'))
+            self.wfile.write(html.html_TAP.encode('utf-8'))
 
         if self.path == '/home/client':
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
-            self.wfile.write(HTML.socket_client.encode('utf-8'))
+            self.wfile.write(html.socket_client.encode('utf-8'))
 
         if self.path == '/choose':
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
-            self.wfile.write(HTML.choose.encode('utf-8'))
+            self.wfile.write(html.choose.encode('utf-8'))
 
         if self.path == '/home/server/start':
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
-            self.wfile.write(HTML.server_start.encode('utf-8'))
+            self.wfile.write(html.server_start.encode('utf-8'))
 
     def do_POST(self):
         if self.path == '/home':

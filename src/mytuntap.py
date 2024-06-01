@@ -4,7 +4,6 @@ import struct
 import subprocess
 import serial
 from base64 import b64decode, b64encode
-import time
 
 
 class Bcolors:  # Класс с константами для цветовой кодировки в консоли
@@ -60,8 +59,6 @@ class TAP_Manager:
             while True:
                 data_rx = self.ser.read(1)
                 receive_base64 += data_rx
-                print(data_rx)
-                print(receive_base64)
                 if data_rx == b'\x00' or data_rx == b'#':
                     break
             receive_base64 = receive_base64.rstrip(b'#')  # Remove the '#' symbol before decoding
