@@ -61,7 +61,7 @@ class TAP_Manager:
                 receive_base64 += data_rx
                 if data_rx == b'\x00' or data_rx == b'#':
                     break
-            receive_base64 = receive_base64.rstrip(b'#')  # Remove the '#' symbol before decoding
+            receive_base64 = receive_base64.rstrip(b'#')  # Удаление символа '#' перед декодированием
             decoded_data = b64decode(receive_base64)
             return decoded_data
         except Exception as e:

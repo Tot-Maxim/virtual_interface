@@ -8,6 +8,11 @@ HOST = 'localhost'
 PORT = 7070
 
 
+class Bcolors:  # Класс с константами для цветовой кодировки в консоли
+    WARNING = '\033[93m'
+    ENDC = '\033[0m'
+
+
 class MyHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == '/':
@@ -48,33 +53,32 @@ class MyHandler(BaseHTTPRequestHandler):
             dst_ip = form.get('dst_ip', [''])[0]
             password = form.get('password', [''])[0]
             serial_port = form.get('serial_port', [''])[0]
-            command = (f"echo {password} | sudo -S gnome-terminal --geometry=200x24 -- bash -c './daemon_tap.py "
-                       f"--serial_port {serial_port} --src_ip {src_ip} --dst_ip {dst_ip}'")
+            command = (f"echo {password} | sudo -S gnome-terminal --geometry=200x24 -- bash -c 'cd .. && cd src/ && "
+                       f"./daemon_tap.py --serial_port {serial_port} --src_ip {src_ip} --dst_ip {dst_ip}'")
             subprocess.Popen(command, shell=True)
-
 
             self.send_response(303)  # See if another redirect is appropriate
             self.send_header('Location', '/choose')
             self.end_headers()
 
-        elif self.path == '/choose':
-            content_length = int(self.headers['Content-Length'])
-            post_data = self.rfile.read(content_length).decode('utf-8')
-            form = parse_qs(post_data)
-            client_ip = form.get('client_ip', [''])[0]
-            client_port = form.get('client_port', [''])[0]
-            file_path = form.get('file_path', [''])[0]
-            form = parse_qs(post_data)
-            socket_ip = form.get('socket_ip', [''])[0]
-            socket_port = form.get('socket_port', [''])[0]
-            command = f"./socket_client.py --ip {client_ip} --port {client_port} --file {file_path}"
-            subprocess.Popen(command, shell=True)
-            # command = (f"gnome-terminal --geometry=200x24 -- bash -c './socket_server.py --ip {socket_ip} --port {socket_port}'")
-            # subprocess.Popen(command, shell=True)
+        # elif self.path == '/choose':
+        #     content_length = int(self.headers['Content-Length'])
+        #     post_data = self.rfile.read(content_length).decode('utf-8')
+        #     form = parse_qs(post_data)
+        #     client_ip = form.get('client_ip', [''])[0]
+        #     client_port = form.get('client_port', [''])[0]
+        #     file_path = form.get('file_path', [''])[0]
+        #     form = parse_qs(post_data)
+        #     socket_ip = form.get('socket_ip', [''])[0]
+        #     socket_port = form.get('socket_port', [''])[0]
+        #     command = f"./socket_client.py --ip {client_ip} --port {client_port} --file {file_path}"
+        #     subprocess.Popen(command, shell=True)
+        #     command = (f"gnome-terminal --geometry=200x24 -- bash -c './socket_server.py --ip {socket_ip} --port {socket_port}'")
+        #     subprocess.Popen(command, shell=True)
 
-            self.send_response(303)
-            self.send_header('Location', '/home/server/start')
-            self.end_headers()
+            # self.send_response(303)
+            # self.send_header('Location', '/home/server/start')
+            # self.end_headers()
 
         elif self.path == '/home/client':
             content_length = int(self.headers['Content-Length'])
@@ -92,5 +96,5 @@ class MyHandler(BaseHTTPRequestHandler):
 
 
 with HTTPServer((HOST, PORT), MyHandler) as server:
-    print(f'Server running on http://{HOST}:{PORT}')
+    print(Bcolors.WARNING + f'Для настройки TAP интерфейса зайдите в браузере: ' + Bcolors.ENDC + f'http://{HOST}:{PORT}' )
     server.serve_forever()
