@@ -10,11 +10,11 @@ parser.add_argument('--port', type=int, default=5050, help='TCP port listening')
 parser.add_argument('--ip', type=str, default='10.1.1.8', help='Source IP address')
 args = parser.parse_args()
 
-class ServerProtocol:
 
+class ServerProtocol:
     def __init__(self):
         self.socket = None
-        self.output_dir = '/home/serverside/PycharmProjects/interface_for_VBox/serv_recevie'
+        self.output_dir = 'serv_receive'
         self.file_num = 1
 
     def listen(self, server_ip, server_port):

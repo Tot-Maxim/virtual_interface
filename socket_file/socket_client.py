@@ -19,7 +19,7 @@ class ClientProtocol:
     def connect(self, server_ip, server_port):
         self.socket = socket(AF_INET, SOCK_STREAM)
         try:
-            self.socket.settimeout(100)
+            self.socket.settimeout(300)
             self.socket.connect((server_ip, server_port))
         except:
             print('Connection timed out')
@@ -59,12 +59,8 @@ def send_file(file_copy: str, address: str, port: int):
 
     if address:
         print(f'Ip-адрес: {address}')
-    else:
-        print(f'Введите IP-адрес')
     if port:
         print(f'Порт: {port}')
-    else:
-        print(f'Введите TCP-порт')
 
     cp.connect(address, int(port))
     cp.send_image(image_data, file_copy)
