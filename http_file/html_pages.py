@@ -33,14 +33,14 @@ TAP_manager = """
             display: grid;
             gap: 20px;
             justify-items: center;
-            margin-top: 40px;
+            margin-top: 200px;
         }
         
         form_input {
             display: grid;
             gap: 30px;
             justify-items: left;
-            margin-top: -20px;
+            margin-top: 130px;
         }
         
         button {
