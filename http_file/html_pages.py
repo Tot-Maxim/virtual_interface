@@ -68,7 +68,7 @@ TAP_manager = """
 <body>
     <div class="top-bar">
         <h1 style="color: white;">TAP Manager</h1>
-        <button style="font-size: 20px; font-weight: bold;" onclick="redirect_to_tap()">TAP MANAGER</button>
+        <button style="font-size: 20px; font-weight: bold; color: grey;" onclick="redirect_to_tap()">TAP MANAGER</button>
         <button style="font-size: 20px; font-weight: bold;" onclick="redirect_to_client()">SOKET CLIENT</button>
         <button style="font-size: 20px; font-weight: bold;" onclick="redirect_to_server()">SOCKET SERVER</button>
     </div>
@@ -132,18 +132,18 @@ socket_client = """
             background-size: cover;
         }
 
-        form {
+         form {
             display: grid;
             gap: 20px;
             justify-items: center;
-            margin-top: 40px;
+            margin-top: 200px;
         }
         
         form_input {
             display: grid;
             gap: 30px;
             justify-items: left;
-            margin-top: -20px;
+            margin-top: 130px;
         }
 
         button {
@@ -172,7 +172,7 @@ socket_client = """
      <div class="top-bar">
         <h1 style="color: white;">Soket client</h1>
         <button style="font-size: 20px; font-weight: bold;" onclick="redirect_to_tap()">TAP MANAGER</button>
-        <button style="font-size: 20px; font-weight: bold;" onclick="redirect_to_client()">SOKET CLIENT</button>
+        <button style="font-size: 20px; font-weight: bold; color: grey;" onclick="redirect_to_client()">SOKET CLIENT</button>
         <button style="font-size: 20px; font-weight: bold;" onclick="redirect_to_server()">SOCKET SERVER</button>
     </div>
      <form_input>
@@ -236,14 +236,14 @@ socket_server = """
             display: grid;
             gap: 20px;
             justify-items: center;
-            margin-top: 40px;
+            margin-top: 200px;
         }
         
         form_input {
             display: grid;
             gap: 30px;
             justify-items: left;
-            margin-top: -20px;
+            margin-top: 130px;
         }
 
         button {
@@ -273,7 +273,7 @@ socket_server = """
         <h1 style="color: white;">Soket server</h1>
         <button style="font-size: 20px; font-weight: bold;" onclick="redirect_to_tap()">TAP MANAGER</button>
         <button style="font-size: 20px; font-weight: bold;" onclick="redirect_to_client()">SOKET CLIENT</button>
-        <button style="font-size: 20px; font-weight: bold;" onclick="redirect_to_server()">SOCKET SERVER</button>
+        <button style="font-size: 20px; font-weight: bold; color: grey;" onclick="redirect_to_server()">SOCKET SERVER</button>
     </div>
     <form_input>
         <label for="dst_ip">Введите IP-адрес сервера:</label>

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from mytuntap import TAP_Manager
+from mytuntap import TAP_Manager  # Импорт класса TAP_Manager из mytuntap
 import select
 import argparse
 
@@ -21,6 +21,7 @@ class Bcolors:  # Класс с константами для цветовой �
     ENDC = '\033[0m'
 
 
+# Буферы для данных TCP и UART
 buffer_tcp = bytearray()
 buffer_uart = bytearray()
 
@@ -28,23 +29,23 @@ while True:
     readable, writable, _ = select.select([tun.fileno(), ser.fileno()], [tun.fileno(), ser.fileno()], [], 0)
 
     for fd in readable:
-        if fd == tun.fileno():
+        if fd == tun.fileno():   # Если доступны данные с tap-интерфейса
             bt = tap_manager.read_from_tcp()
             if bt:
-                buffer_tcp.extend(bt)
+                buffer_tcp.extend(bt)  # Добавляем данные в буфер buffer_tcp
 
-        elif fd == ser.fileno():
+        elif fd == ser.fileno():  # Если доступны данные с серийного порта
             bu = tap_manager.read_from_serial()
             if bu:
-                buffer_uart.extend(bu)
+                buffer_uart.extend(bu)  # Добавляем данные в буфер buffer_uart
 
     for fd in writable:
-        if fd == tun.fileno():
+        if fd == tun.fileno():  # Если возможна запись в tap-интерфейс
             if buffer_uart:
-                tap_manager.write_to_tcp(buffer_uart)
-                buffer_uart.clear()
+                tap_manager.write_to_tcp(buffer_uart)  # Записываем данные из буфера buffer_uart
+                buffer_uart.clear()  # Очищаем буфер buffer_uart
 
-        elif fd == ser.fileno():
+        elif fd == ser.fileno():  # Если возможна запись в серийный порт
             if buffer_tcp:
-                tap_manager.write_to_uart(buffer_tcp)
-                buffer_tcp.clear()
+                tap_manager.write_to_uart(buffer_tcp)  # Записываем данные из буфера buffer_tcp
+                buffer_tcp.clear()  # Очищаем буфер buffer_tcp

@@ -15,6 +15,7 @@ class Bcolors:  # Класс с константами для цветовой �
 
 class TAP_Manager:
     def __init__(self, src_ip, dst_ip, serial_port, baud_rate):  # Инициализируем значения переменных
+        # Инициализация значений переменных
         self.ser = None
         self.tun_in = None
         self.src_ip = src_ip
@@ -32,6 +33,7 @@ class TAP_Manager:
         IFF_TAP = 0x0002
         IFF_NO_PI = 0x1000
 
+        # Открытие интерфейса и его настройка
         self.tun_in = open('/dev/net/tun', 'r+b', buffering=0)
         ifr = struct.pack('16sH', b'tap0', IFF_TAP | IFF_NO_PI)
         fcntl.ioctl(self.tun_in, TUNSETIFF, ifr)
@@ -41,6 +43,7 @@ class TAP_Manager:
 
     def serial_setup(self):
         try:
+            # Настройка последовательного порта
             self.ser = serial.Serial(self.serial_port, self.baud_rate)
             return self.ser
         except Exception as e:
@@ -48,6 +51,7 @@ class TAP_Manager:
 
     def read_from_tcp(self):
         try:
+            # Чтение данных из tap-интерфейса
             from_tcp = os.read(self.tun_in.fileno(), 2048)
             return from_tcp
         except OSError as e:
@@ -55,6 +59,7 @@ class TAP_Manager:
 
     def read_from_serial(self):
         try:
+            # Чтение данных из последовательного порта
             receive_base64 = b''
             while True:
                 data_rx = self.ser.read(1)
@@ -69,6 +74,7 @@ class TAP_Manager:
 
     def write_to_tcp(self, receive_base64):
         try:
+            # Запись данных в tap-интерфейс
             os.write(self.tun_in.fileno(), bytes(receive_base64))
             print(Bcolors.WARNING + f'Записанные данные в TAP:' + Bcolors.ENDC,
                   ' '.join('{:02x}'.format(x) for x in receive_base64))
@@ -77,6 +83,7 @@ class TAP_Manager:
 
     def write_to_uart(self, data_from_tcp):
         try:
+            # Запись данных в последовательный порт
             send_base64 = b64encode(data_from_tcp) + b'#'
             self.ser.write(send_base64)
             print(Bcolors.OKGREEN + f'Записанные данные в {self.serial_port}:' + Bcolors.ENDC,
