@@ -28,7 +28,7 @@ class ServerProtocol:
             while True:
                 (connection, addr) = self.socket.accept()
                 try:
-                    print('Input data ...')
+                    print('Прием данных ...')
                     bs = connection.recv(8)
                     (length_data,) = unpack('>Q', bs)
                     time_start = time.time()
@@ -39,21 +39,22 @@ class ServerProtocol:
                     name_file = name.decode('utf-8')
 
                     data = b''
-                    print(f'File size: {length_data} byte')
+                    print(f'Размер принимаемого файла: {length_data} byte')
                     while len(data) < length_data:
                         to_read = length_data - len(data)
                         data += connection.recv(
                             4096 if to_read > 4096 else to_read)
+                        print(f'Прогресс: {((len(data) * 100) / length_data):.2f} %')
                     time_end = time.time()
-                    print(f'File {name_file} save in {self.output_dir}')
-                    print(f'Time transfer: {time_end - time_start} c')
+                    print(f'Файл {name_file} сохранен в папке {self.output_dir}')
+                    print(f'Общее время передачи данных: {time_end - time_start} c')
                 finally:
                     connection.shutdown(SHUT_WR)
                     connection.close()
 
                 with open(os.path.join(self.output_dir, name.decode('utf-8')), 'wb') as fp:
                     fp.write(data)
-                    print('File write success')
+                    print('Файл записан успешно')
 
                 self.file_num += 1
         finally:
@@ -67,7 +68,7 @@ class ServerProtocol:
 def start_server(address: str, port: int):
     sp = ServerProtocol()
     sp.listen(address, port)
-    print(f'Server listen {address, port}')
+    print(f'Сервер запущен: {address, port}')
     sp.handle_images()
 
 
