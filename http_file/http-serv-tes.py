@@ -63,8 +63,7 @@ class MyHandler(BaseHTTPRequestHandler):
             socket_port = form.get('socket_port', [''])[0]
 
             command = (f"gnome-terminal --geometry=200x24 --title='SOCKET SERVER' -- bash -c 'cd .. && cd "
-                       f"socket_file/ && ./socket_server.py"
-                       f"--ip {socket_ip} --port {socket_port}'")
+                       f"socket_file/ && ./socket_server.py --ip {socket_ip} --port {socket_port}'")
             subprocess.Popen(command, shell=True)
 
             self.send_response(303)

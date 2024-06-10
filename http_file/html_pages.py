@@ -183,7 +183,7 @@ socket_client = """
     <form method="post">
         <input type="text" id="client_ip" name="client_ip" value="10.1.1.7">
         <input type="number" id="client_port" name="client_port" value="5050">
-        <input type="text" id="file_path" name="file_path" value='logo.png'>
+        <input type="text" id="file_path" name="file_path" value='logo.zip'>
         <button onclick="window.location.href='/socket_client'">Передать файл</button>
     </form>
     <script>
