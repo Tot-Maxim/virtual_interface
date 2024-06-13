@@ -16,8 +16,8 @@ TUNTAP представляет собой удобную утилиту для 
  - Версия интерпретатора Python 3
  - Необходимые библиотеки для корректного запуска:
 ```sh 
-   $sudo pip install pyserial
-   $sudo apt install gnome-terminal
+   $ sudo pip install pyserial
+   $ sudo apt install gnome-terminal
 ```
  - Среда разработки Thonny (по желанию)
 

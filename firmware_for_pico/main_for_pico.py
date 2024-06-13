@@ -10,33 +10,28 @@ p.register(uart, select.POLLIN | select.POLLOUT)
 p.register(stdin, select.POLLIN)
 p.register(stdout, select.POLLOUT)
 
-buffer_std = bytearray()
-buffer_uart = bytearray()
+buffer_std = bytes()
+buffer_uart = bytes()
 
 while True:
     events = p.poll()
     for fd, event in events:
         if fd == uart:
             if event & select.POLLIN:
-                led.value(0)
-                data = uart.read(1)
-                if data is not None:
-                    b = ord(data)
-                    buffer_uart.append(b)
+                data = uart.read(4096)
+                if data:
+                    buffer_uart += data
 
             if event & select.POLLOUT:
                 if buffer_std:
                     uart.write(buffer_std)
-                    buffer_std = bytearray()
+                    buffer_std = bytes()
 
-        if fd == stdin:
-            if event & select.POLLIN:
-                led.value(1)
-                b = ord(stdin.buffer.read(1))
-                buffer_std.append(b)
+        elif fd == stdin:
+            data = stdin.buffer.read(1)
+            buffer_std += data
 
-        if fd == stdout:
-            if event & select.POLLOUT:
-                if buffer_uart:
-                    stdout.buffer.write(buffer_uart)
-                    buffer_uart = bytearray()
+        elif fd == stdout:
+            if buffer_uart:
+                stdout.buffer.write(buffer_uart)
+                buffer_uart = bytes()
